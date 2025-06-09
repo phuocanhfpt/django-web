@@ -114,17 +114,16 @@ pymysql.install_as_MySQLdb()
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('MYSQLDATABASE'),
-        'USER': env('MYSQLUSER'),
-        'PASSWORD': env('MYSQLPASSWORD'),
-        'HOST': env('MYSQLHOST'),
-        'PORT': env('MYSQLPORT', default='3306'),
+        'NAME': os.getenv('MYSQLDATABASE'),  # Thay env() bằng os.getenv()
+        'USER': os.getenv('MYSQLUSER'),
+        'PASSWORD': os.getenv('MYSQLPASSWORD'),
+        'HOST': os.getenv('MYSQLHOST'),
+        'PORT': os.getenv('MYSQLPORT', '3306'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
-
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
