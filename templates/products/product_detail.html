@@ -1,0 +1,642 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load vnd_filters %}
+{% load singlepage_extras %}
+
+{% block title %}{{ product.meta_title|default:product.name }} - {{ product.category.name }}{% if product.brand %} - {{ product.brand.name }}{% endif %} | {{ site_settings.site_name }}{% endblock %}
+{% block meta_description %}{{ product.meta_description|default:product.short_description|default:product.description|striptags|truncatechars:160 }}{% endblock %}
+{% block meta_keywords %}{{ product.tags }}{% if product.category and product.category.tags %},{{ product.category.tags }}{% endif %}{% if product.brand %},{{ product.brand.name }}{% endif %},{{ product.name }},{{ product.category.name }},camera,shop online,an ninh,thiết bị,camera giám sát,camera an ninh,thiết bị bảo mật{% endblock %}
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+{% block meta_og %}
+<meta property="og:type" content="product">
+<meta property="og:title" content="{{ product.meta_title|default:product.name }} - {{ product.category.name }}{% if product.brand %} - {{ product.brand.name }}{% endif %} | {{ site_settings.site_name }}">
+<meta property="og:description" content="{{ product.meta_description|default:product.short_description|default:product.description|striptags|truncatechars:160 }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{% if product.image %}{{ product.image.url }}{% endif %}">
+<meta property="og:site_name" content="{{ site_settings.site_name }}">
+{% endblock %}
+{% block meta_twitter %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ product.meta_title|default:product.name }} - {{ product.category.name }}{% if product.brand %} - {{ product.brand.name }}{% endif %} | {{ site_settings.site_name }}">
+<meta name="twitter:description" content="{{ product.meta_description|default:product.short_description|default:product.description|striptags|truncatechars:160 }}">
+<meta name="twitter:image" content="{% if product.image %}{{ product.image.url }}{% endif %}">
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.product-content {
+  font-size: 1.08rem;
+  line-height: 1.7;
+  color: #222;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 28px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.06);
+}
+.product-content h2, .product-content h3, .product-content h4 {
+  color: #1769aa;
+  margin-top: 1.2em;
+  margin-bottom: 0.7em;
+}
+.product-content ul, .product-content ol {
+  margin-left: 1.2em;
+}
+.section-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 1.2rem;
+  padding-bottom: 7px;
+  letter-spacing: 0.2px;
+  gap: 8px;
+}
+.section-title .icon {
+  font-size: 1.05rem;
+  color: #e53935;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.section-title:after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #e53935 0 70px, #e5393555 70px 100%);
+  border-radius: 2px;
+  z-index: 1;
+}
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.05rem;
+    padding-bottom: 5px;
+  }
+  .section-title:after {
+    height: 2px;
+    background: linear-gradient(90deg, #e53935 0 36px, #e5393555 36px 100%);
+  }
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f4f8fb;
+  color: #1769aa;
+  font-size: 1.25rem;
+  margin-right: 2px;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  border: none;
+  outline: none;
+  text-decoration: none;
+}
+.share-btn:hover {
+  background: #e3f2fd;
+  color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+}
+.product-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+    margin: 18px auto;
+    display: block;
+}
+@media (max-width: 575.98px) {
+  .product-content img {
+    border-radius: 10px;
+    margin: 12px auto;
+  }
+}
+.blockquote {
+  border-left: 4px solid #0d6efd;
+  padding-left: 1rem;
+  background: #f8f9fa;
+}
+.blockquote-footer {
+  color: #1769aa;
+  font-style: italic;
+  font-size: 1rem;
+}
+.code-block {
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  padding: 1rem 1rem 1rem 1rem;
+  position: relative;
+  overflow: auto;
+}
+.code-block pre {
+  background: transparent;
+  border: none;
+  margin-bottom: 0;
+  padding: 0;
+}
+.btn-copy-code {
+  z-index: 2;
+  font-size: 1.1rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.btn-copy-code:hover {
+  opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="/products/" class="text-primary text-decoration-none">Sản phẩm</a></li>
+    <li class="breadcrumb-item"><a href="{{ product.category.get_absolute_url }}" class="text-primary text-decoration-none">{{ product.category.name }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  <div class="row g-4">
+    <!-- Product Image & Info -->
+    <div class="col-lg-6">
+      <div class="bg-white rounded-4 shadow-sm p-3 mb-4">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" class="img-fluid rounded-4 w-100 mb-3" alt="{{ product.name }}">
+        {% else %}
+        <img src="https://via.placeholder.com/600x400" class="img-fluid rounded-4 w-100 mb-3" alt="{{ product.name }}">
+        {% endif %}
+        <div class="mb-2">
+          <span class="badge bg-primary">{{ product.category.name }}</span>
+          {% if product.brand %}
+          <span class="badge bg-info text-dark ms-2">{{ product.brand.name }}</span>
+          {% endif %}
+        </div>
+        <!-- Đánh giá 5 sao -->
+        <div class="mb-3">
+          <div class="d-flex align-items-center mb-1">
+            <div class="me-2">
+              {% for i in "12345" %}
+                {% if product.average_rating|floatformat:1 >= i|add:".0" %}
+                  <i class="fa fa-star text-warning"></i>
+                {% elif product.average_rating|floatformat:1 >= i|add:".0"|floatformat:1|add:"-0.5" %}
+                  <i class="fa fa-star-half-alt text-warning"></i>
+                {% else %}
+                  <i class="fa fa-star text-secondary"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <span class="fw-bold">{{ product.average_rating|floatformat:1 }}/5</span>
+            <span class="text-muted ms-2">({{ product.ratings_count }} đánh giá)</span>
+          </div>
+          {% if user.is_authenticated %}
+          <form method="post" class="d-flex align-items-center" style="gap:0.5rem;">
+            {% csrf_token %}
+            <input type="hidden" name="rating" id="rating-value" value="">
+            <div id="star-rating" class="d-flex align-items-center" style="font-size:1.6rem;cursor:pointer;">
+              {% for i in "12345" %}
+                <i class="fa fa-star text-secondary" data-value="{{ forloop.counter }}"></i>
+              {% endfor %}
+            </div>
+            <button type="submit" class="btn btn-outline-primary btn-sm ms-2">Gửi đánh giá</button>
+          </form>
+          {% else %}
+          <div class="text-muted small">Bạn cần <a href="{% url 'account_login' %}?next={{ request.path }}">đăng nhập</a> để đánh giá sản phẩm.</div>
+          {% endif %}
+        </div>
+        <!-- End đánh giá 5 sao -->
+        <!-- Danh sách đánh giá chi tiết -->
+        <div class="mt-3">
+          <h6 class="mb-2">Đánh giá chi tiết:</h6>
+          {% for r in product.ratings.all %}
+            <div class="d-flex align-items-center mb-2">
+              <div>
+                <strong>{{ r.user.get_full_name|default:r.user.username }}</strong>
+                <span class="text-muted small ms-2">{{ r.created|date:"d/m/Y" }}</span>
+              </div>
+              <div class="ms-3">
+                {% for i in "12345" %}
+                  <i class="fa fa-star{% if forloop.counter <= r.rating %} text-warning{% else %} text-secondary{% endif %}"></i>
+                {% endfor %}
+              </div>
+            </div>
+          {% empty %}
+            <div class="text-muted">Chưa có đánh giá nào.</div>
+          {% endfor %}
+        </div>
+        <!-- End danh sách đánh giá chi tiết -->
+        
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="bg-white rounded-4 shadow-sm p-4 h-100 d-flex flex-column" style="padding-top: 1.1rem !important;">
+        <h1 class="mb-3" style="margin-top: 0.2em;">{{ product.name }}</h1>
+        <!-- Nút chia sẻ -->
+        <div class="mb-3 d-flex align-items-center gap-2">
+          <span class="fw-bold me-2">Chia sẻ:</span>
+          <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Facebook">
+            <i class="bi bi-facebook"></i>
+          </a>
+          <a href="https://zalo.me/share/url?url={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Zalo">
+            <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+              <circle cx="16" cy="16" r="16" fill="#008fe5"/>
+              <text x="16" y="21" text-anchor="middle" font-size="14" font-family="Arial, Helvetica, sans-serif" fill="#fff" font-weight="bold">Zalo</text>
+            </svg>
+          </a>
+          <a href="https://www.messenger.com/share?link={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Messenger">
+            <i class="bi bi-messenger"></i>
+          </a>
+          <button type="button" class="share-btn border-0 bg-transparent p-0" id="copyLinkBtn" title="Sao chép link">
+            <i class="bi bi-link-45deg"></i>
+          </button>
+          <span id="copyLinkMsg" class="text-success ms-2" style="display:none;font-size:0.97rem;">Đã sao chép!</span>
+        </div>
+        <div class="mb-3">
+          {% if product.sale_price and product.sale_price < product.price %}
+            <span class="text-muted text-decoration-line-through me-2">{{ product.price|vndcomma }} đ</span>
+            <span class="fw-bold text-danger h4">{{ product.sale_price|vndcomma }} đ</span>
+          {% else %}
+            <span class="fw-bold text-primary h4">{{ product.price|vndcomma }} đ</span>
+          {% endif %}
+        </div>
+        <div class="mb-3">
+          <form method="post" action="{% url 'cart:cart_add' product.id %}">
+            {% csrf_token %}
+            <div class="row align-items-center g-2">
+              <div class="col-auto">
+                <label for="quantity" class="form-label mb-0">Số lượng:</label>
+                <input type="number" name="quantity" id="quantity" class="form-control" value="1" min="1" style="width: 90px;">
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-success px-4"><i class="fas fa-cart-plus me-1"></i>Thêm vào giỏ</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="mb-3">
+          <span class="fw-bold">Danh mục:</span>
+          <a href="{{ product.category.get_absolute_url }}" class="text-decoration-none ms-1">{{ product.category.name }}</a>
+        </div>
+        {% if product.brand %}
+        <div class="mb-3">
+          <span class="fw-bold">Thương hiệu:</span>
+          <span class="ms-1">{{ product.brand.name }}</span>
+        </div>
+        {% endif %}
+        <div class="mb-3">
+          <span class="fw-bold">Tính năng:</span>
+          {% if product.features.all %}
+            {% for feature in product.features.all %}
+              <span class="badge bg-info text-dark ms-1">
+                {% if feature.icon %}<i class="fa {{ feature.icon }} me-1"></i>{% endif %}{{ feature.name }}
+              </span>
+            {% endfor %}
+          {% else %}
+            <span class="text-muted">Không có</span>
+          {% endif %}
+        </div>
+        <div class="mt-auto">
+          <div class="small text-muted">Cập nhật: {{ product.updated|date:'d/m/Y H:i' }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Mô tả sản phẩm -->
+  <div class="product-content mt-4">
+    {{ product.description|render_shortcodes|safe }}
+  </div>
+  <!-- Sản phẩm bán kèm -->
+  {% if product.accessories.all %}
+  <section class="mt-5">
+    <h3 class="section-title"><i class="fas fa-plus-circle icon"></i>Sản phẩm bán kèm</h3>
+    <div class="row g-4">
+      {% for acc in product.accessories.all %}
+      <div class="col-12 col-md-6 col-lg-3">
+        {% include 'products/_product_card.html' with product=acc %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  <!-- Sản phẩm liên quan -->
+  {% if related_products %}
+  <section class="mt-5">
+    <h3 class="section-title"><i class="fas fa-th-large icon"></i>Sản phẩm liên quan</h3>
+    <div class="row g-4">
+      {% for rel in related_products %}
+      <div class="col-12 col-md-6 col-lg-3">
+        {% include 'products/_product_card.html' with product=rel %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% if product.tags %}
+  <div class="category-tags mt-5 mb-4">
+    <h6 class="text-center mb-3">Từ khóa sản phẩm</h6>
+    <div class="text-center">
+      {% for tag in product.get_tags_list %}
+      <a href="/products/?q={{ tag }}" class="category-tag" title="Tìm kiếm sản phẩm với từ khóa: {{ tag }}">
+        <i class="fas fa-tag me-1"></i>{{ tag }}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+  <!-- Bình luận sản phẩm -->
+  <section class="mt-5">
+    <h3 class="section-title"><i class="fas fa-comments icon"></i>Bình luận sản phẩm</h3>
+    <div class="card shadow-sm mb-4">
+      <div class="card-body">
+        {% if user.is_authenticated %}
+          <form method="post" class="mb-4">
+            {% csrf_token %}
+            <div class="mb-3">
+              <textarea name="content" class="form-control" rows="3" placeholder="Nhập bình luận của bạn..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane me-1"></i>Gửi bình luận</button>
+          </form>
+        {% else %}
+          <div class="alert alert-info">Bạn cần <a href="{% url 'account_login' %}?next={{ request.path }}">đăng nhập</a> để bình luận.</div>
+        {% endif %}
+        <div class="comment-list mt-3">
+          {% for comment in comments %}
+            <div class="border-bottom pb-3 mb-3">
+              <div class="d-flex align-items-center mb-2">
+                <div class="fw-bold me-2">{{ comment.user.get_full_name|default:comment.user.username }}</div>
+                <span class="text-muted small">{{ comment.created|date:'d/m/Y H:i' }}</span>
+              </div>
+              <div class="mb-2">{{ comment.content|linebreaks }}</div>
+              {% if user.is_staff %}
+                <a href="#reply-form-{{ comment.id }}" class="btn btn-link btn-sm text-primary" data-bs-toggle="collapse" data-bs-target="#reply-form-{{ comment.id }}">Trả lời</a>
+              {% endif %}
+              {% for reply in comment.replies.all %}
+                {% if reply.is_admin_reply %}
+                  <div class="card mt-2 ms-4 bg-light border-primary">
+                    <div class="card-body py-2">
+                      <div class="fw-bold text-primary mb-1">Admin</div>
+                      <div class="mb-1">{{ reply.content|linebreaks }}</div>
+                      <span class="text-muted small">{{ reply.created|date:'d/m/Y H:i' }}</span>
+                    </div>
+                  </div>
+                {% endif %}
+              {% endfor %}
+              {% if user.is_staff %}
+              <div class="collapse mt-2" id="reply-form-{{ comment.id }}">
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                  <input type="hidden" name="is_admin_reply" value="1">
+                  <div class="mb-2">
+                    <textarea name="content" class="form-control" rows="2" placeholder="Trả lời bình luận này..." required></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-reply me-1"></i>Trả lời</button>
+                </form>
+              </div>
+              {% endif %}
+            </div>
+          {% empty %}
+            <div class="alert alert-secondary mb-0">Chưa có bình luận nào cho sản phẩm này.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var stars = document.querySelectorAll('#star-rating .fa-star');
+  var ratingInput = document.getElementById('rating-value');
+  var selectedRating = 0;
+  if (stars.length && ratingInput) {
+    stars.forEach(function(star, idx) {
+      star.addEventListener('mouseenter', function() {
+        for (var i = 0; i <= idx; i++) stars[i].classList.add('text-warning');
+        for (var i = idx+1; i < stars.length; i++) stars[i].classList.remove('text-warning');
+      });
+      star.addEventListener('mouseleave', function() {
+        for (var i = 0; i < stars.length; i++) {
+          if (i < selectedRating) {
+            stars[i].classList.add('text-warning');
+          } else {
+            stars[i].classList.remove('text-warning');
+          }
+        }
+      });
+      star.addEventListener('click', function() {
+        selectedRating = idx + 1;
+        ratingInput.value = selectedRating;
+        for (var i = 0; i < stars.length; i++) {
+          if (i < selectedRating) {
+            stars[i].classList.add('text-warning');
+          } else {
+            stars[i].classList.remove('text-warning');
+          }
+        }
+      });
+    });
+  }
+});
+</script>
+<script>
+document.getElementById('copyLinkBtn')?.addEventListener('click', function() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(function() {
+    const msg = document.getElementById('copyLinkMsg');
+    if (msg) {
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 1800);
+    }
+  });
+});
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org/",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "image": [
+    "{% if product.image %}{{ product.image.url }}{% endif %}"
+  ],
+  "description": "{{ product.short_description|default:product.description|striptags|truncatechars:200|escapejs }}",
+  "sku": "{{ product.id }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ product.brand.name|default_if_none:''|escapejs }}"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ product.average_rating|floatformat:1 }}",
+    "reviewCount": "{{ product.ratings_count }}"
+  },
+  "review": [
+    {% for r in product.ratings.all|slice:":5" %}
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "{{ r.user.get_full_name|default:r.user.username|escapejs }}"
+      },
+      "datePublished": "{{ r.created|date:'Y-m-d' }}",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ r.rating }}",
+        "bestRating": "5",
+        "worstRating": "1"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+<!-- Highlight.js for code block -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Copy code button
+  document.querySelectorAll('.btn-copy-code').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = btn.parentElement.querySelector('code');
+      if (code) {
+        const text = code.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.innerHTML = '<i class="bi bi-clipboard-check"></i>';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-clipboard"></i>';
+          }, 1200);
+        });
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+<!-- BreadcrumbList Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Trang chủ",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Sản phẩm",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/products/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ product.category.name }}",
+      "item": "{{ product.category.get_absolute_url }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "name": "{{ product.name }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+
+<!-- Product Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "image": [
+    "{% if product.image %}{{ product.image.url }}{% endif %}"
+  ],
+  "description": "{{ product.short_description|default:product.description|striptags|truncatechars:200|escapejs }}",
+  "sku": "{{ product.sku|default:product.id }}",
+  "mpn": "{{ product.sku|default:product.id }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "{{ product.brand.name|default_if_none:''|escapejs }}"
+  },
+  "category": "{{ product.category.name|escapejs }}",
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ request.build_absolute_uri }}",
+    "priceCurrency": "VND",
+    "price": "{{ product.sale_price|default:product.price }}",
+    "priceValidUntil": "{{ product.updated|date:'Y-m-d' }}",
+    "availability": "https://schema.org/{% if product.in_stock %}InStock{% else %}OutOfStock{% endif %}",
+    "seller": {
+      "@type": "Organization",
+      "name": "{{ site_settings.site_name|escapejs }}"
+    }
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "{{ product.average_rating|floatformat:1 }}",
+    "reviewCount": "{{ product.ratings_count }}",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "review": [
+    {% for r in product.ratings.all|slice:":5" %}
+    {
+      "@type": "Review",
+      "author": {
+        "@type": "Person",
+        "name": "{{ r.user.get_full_name|default:r.user.username|escapejs }}"
+      },
+      "datePublished": "{{ r.created|date:'Y-m-d' }}",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "{{ r.rating }}",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "reviewBody": "{{ r.comment|default:''|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ],
+  "additionalProperty": [
+    {% for feature in product.features.all %}
+    {
+      "@type": "PropertyValue",
+      "name": "{{ feature.name|escapejs }}",
+      "value": "true"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{{ block.super }}
+{% endblock %} 

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load socialaccount %}
+
+{% block title %}Đăng nhập - Camera HCM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Đăng nhập</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:430px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h2 class="mb-4 text-center"><i class="bi bi-person-circle me-2"></i>Đăng nhập</h2>
+            <form method="post" action="">
+                {% csrf_token %}
+                {{ form.non_field_errors }}
+                <div class="mb-3">
+                    <label for="id_login" class="form-label">Email</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        {{ form.login }}
+                    </div>
+                    {% if form.login.errors %}
+                    <div class="text-danger small mt-1">{{ form.login.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    <label for="id_password" class="form-label">Mật khẩu</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        {{ form.password }}
+                    </div>
+                    {% if form.password.errors %}
+                    <div class="text-danger small mt-1">{{ form.password.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2">Đăng nhập</button>
+            </form>
+            <div class="text-center mt-3">
+                <a href="{% url 'account_reset_password' %}" class="text-decoration-none">Quên mật khẩu?</a>
+            </div>
+            <div class="text-center mt-4 mb-2">
+                <span style="color:#888;">Hoặc</span>
+            </div>
+            <div class="text-center mb-2">
+                <a href="{% provider_login_url 'google' %}" class="btn btn-outline-danger w-100 py-2" style="font-weight:600;">
+                    <i class="bi bi-google me-2"></i> Đăng nhập bằng Google
+                </a>
+            </div>
+            <div class="text-center mt-3">
+                <span>Bạn chưa có tài khoản?</span> <a href="{% url 'account_signup' %}" class="text-primary text-decoration-none">Đăng ký</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

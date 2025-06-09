@@ -1,0 +1,218 @@
+[
+  {
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+      "username": "admin",
+      "password": "pbkdf2_sha256$600000$abcdefghijklmnopqrstuvwx$1234567890abcdefghijklmnopqrstuvwxyz=",
+      "email": "admin@example.com",
+      "is_staff": true,
+      "is_active": true,
+      "is_superuser": true,
+      "date_joined": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.category",
+    "pk": 1,
+    "fields": {
+      "name": "Camera IP",
+      "slug": "camera-ip",
+      "description": "Camera IP giám sát qua mạng internet",
+      "status": "active",
+      "show_on_home": true,
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.category",
+    "pk": 2,
+    "fields": {
+      "name": "Camera Analog",
+      "slug": "camera-analog",
+      "description": "Camera Analog truyền thống",
+      "status": "active",
+      "show_on_home": true,
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.brand",
+    "pk": 1,
+    "fields": {
+      "name": "Hikvision",
+      "slug": "hikvision",
+      "description": "Thương hiệu camera hàng đầu thế giới",
+      "status": "active",
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "name": "Camera IP Hikvision DS-2CD2385G1-I",
+      "slug": "camera-ip-hikvision-ds-2cd2385g1-i",
+      "category": 1,
+      "brand": 1,
+      "price": "2500000",
+      "sale_price": "2200000",
+      "short_description": "Camera IP 8MP, tầm nhìn xa 30m",
+      "description": "Camera IP Hikvision DS-2CD2385G1-I 8MP với độ phân giải cao, tầm nhìn xa 30m, chống nước IP67",
+      "status": true,
+      "featured": true,
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-01T00:00:00Z",
+      "has_wifi": true,
+      "has_night_vision": true,
+      "is_waterproof": true
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "name": "Camera Analog Hikvision DS-2CE16H0T-IT3",
+      "slug": "camera-analog-hikvision-ds-2ce16h0t-it3",
+      "category": 2,
+      "brand": 1,
+      "price": "1500000",
+      "sale_price": "1300000",
+      "short_description": "Camera Analog 2MP, tầm nhìn xa 20m",
+      "description": "Camera Analog Hikvision DS-2CE16H0T-IT3 2MP với độ phân giải cao, tầm nhìn xa 20m, chống nước IP67",
+      "status": true,
+      "featured": false,
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-01T00:00:00Z",
+      "has_wifi": false,
+      "has_night_vision": true,
+      "is_waterproof": true
+    }
+  },
+  {
+    "model": "products.productcomment",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "user": 1,
+      "content": "Camera chất lượng tốt, hình ảnh rõ nét",
+      "created": "2024-01-02T00:00:00Z",
+      "approved": true,
+      "is_admin_reply": false
+    }
+  },
+  {
+    "model": "products.productcomment",
+    "pk": 2,
+    "fields": {
+      "product": 1,
+      "user": 1,
+      "content": "Cảm ơn bạn đã phản hồi. Chúng tôi sẽ cố gắng phục vụ tốt hơn",
+      "created": "2024-01-02T01:00:00Z",
+      "approved": true,
+      "is_admin_reply": true,
+      "parent": 1
+    }
+  },
+  {
+    "model": "orders.order",
+    "pk": 1,
+    "fields": {
+      "user": 1,
+      "full_name": "Nguyễn Văn A",
+      "email": "nguyenvana@example.com",
+      "phone": "0123456789",
+      "address": "123 Đường ABC, Quận 1, TP.HCM",
+      "city": "TP.HCM",
+      "created": "2024-01-03T00:00:00Z",
+      "updated": "2024-01-03T00:00:00Z",
+      "status": "pending",
+      "note": "Giao hàng giờ hành chính",
+      "total_cost": "2200000",
+      "payment_method": "cod"
+    }
+  },
+  {
+    "model": "orders.orderitem",
+    "pk": 1,
+    "fields": {
+      "order": 1,
+      "product": 1,
+      "price": "2200000",
+      "quantity": 1
+    }
+  },
+  {
+    "model": "consultations.consultation",
+    "pk": 1,
+    "fields": {
+      "full_name": "Trần Thị B",
+      "address": "456 Đường XYZ, Quận 2, TP.HCM",
+      "phone": "0987654321",
+      "content": "Tôi muốn tư vấn lắp đặt camera cho nhà riêng",
+      "status": "pending",
+      "created_at": "2024-01-04T00:00:00Z",
+      "updated_at": "2024-01-04T00:00:00Z",
+      "notes": "Khách hàng cần tư vấn gói camera 4 mắt",
+      "is_active": true
+    }
+  },
+  {
+    "model": "products.contact",
+    "pk": 1,
+    "fields": {
+      "name": "Lê Văn C",
+      "email": "levanc@example.com",
+      "phone": "0123456789",
+      "subject": "Tư vấn camera",
+      "message": "Tôi muốn được tư vấn về camera giám sát",
+      "status": "pending",
+      "replied": false,
+      "created": "2024-01-05T00:00:00Z",
+      "updated": "2024-01-05T00:00:00Z"
+    }
+  },
+  {
+    "model": "posts.postcategory",
+    "pk": 1,
+    "fields": {
+      "name": "Tin tức",
+      "slug": "tin-tuc",
+      "description": "Tin tức về camera và an ninh",
+      "created": "2024-01-01T00:00:00Z",
+      "updated": "2024-01-01T00:00:00Z"
+    }
+  },
+  {
+    "model": "posts.post",
+    "pk": 1,
+    "fields": {
+      "title": "Cách chọn camera phù hợp cho gia đình",
+      "slug": "cach-chon-camera-phu-hop-cho-gia-dinh",
+      "short_description": "Hướng dẫn chọn camera phù hợp với nhu cầu gia đình",
+      "content": "Nội dung chi tiết về cách chọn camera...",
+      "category": 1,
+      "status": "published",
+      "created": "2024-01-06T00:00:00Z",
+      "updated": "2024-01-06T00:00:00Z",
+      "featured": true,
+      "views": 100,
+      "author": 1
+    }
+  },
+  {
+    "model": "posts.comment",
+    "pk": 1,
+    "fields": {
+      "post": 1,
+      "user": 1,
+      "content": "Bài viết rất hữu ích, cảm ơn tác giả",
+      "created": "2024-01-07T00:00:00Z",
+      "approved": true,
+      "is_admin_reply": false
+    }
+  }
+] 

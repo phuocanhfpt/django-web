@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Liên hệ{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Liên hệ</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Liên hệ với chúng tôi</h4>
+        </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+          <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+              {{ form.full_name.label_tag }}
+              {{ form.full_name }}
+              {% if form.full_name.errors %}
+                <div class="invalid-feedback d-block">{{ form.full_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.email.label_tag }}
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="invalid-feedback d-block">{{ form.email.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.phone.label_tag }}
+              {{ form.phone }}
+              {% if form.phone.errors %}
+                <div class="invalid-feedback d-block">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              {{ form.message.label_tag }}
+              {{ form.message }}
+              {% if form.message.errors %}
+                <div class="invalid-feedback d-block">{{ form.message.errors.0 }}</div>
+              {% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Gửi liên hệ</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-5 mb-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Bản đồ Google Maps</h5>
+        </div>
+        <div class="card-body p-0">
+          <a href="https://goo.gl/maps/8f7804e877c72efc" target="_blank" rel="noopener" style="display:block;">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3918.8009542947825!2d106.55465484097658!3d10.826539229156603!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31752b8d6ba794af%3A0x8f7804e877c72efc!2zTOG6r3AgxJHhurd0IGNhbWVyYSBWxKluaCBM4buZYw!5e0!3m2!1svi!2s!4v1747982587170!5m2!1svi!2s" width="100%" height="350" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+  <title>Liên hệ - Camera HCM</title>
+  <meta name="description" content="Liên hệ với Camera HCM để được tư vấn về camera giám sát, thiết bị an ninh. Hotline: 0123456789, email: contact@camerahcm.com, địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM.">
+  <meta name="keywords" content="liên hệ, camera, camera giám sát, camera an ninh, thiết bị bảo mật, tư vấn, hỗ trợ">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Liên hệ - Camera HCM">
+  <meta property="og:description" content="Liên hệ với Camera HCM để được tư vấn về camera giám sát, thiết bị an ninh. Hotline: 0123456789, email: contact@camerahcm.com, địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM.">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/contact-banner.jpg' %}">
+  <meta property="og:site_name" content="Camera HCM">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Liên hệ - Camera HCM">
+  <meta name="twitter:description" content="Liên hệ với Camera HCM để được tư vấn về camera giám sát, thiết bị an ninh. Hotline: 0123456789, email: contact@camerahcm.com, địa chỉ: 123 Đường ABC, Quận XYZ, TP.HCM.">
+  <meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/contact-banner.jpg' %}">
+
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Liên hệ",
+        "item": "{{ request.build_absolute_uri }}"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Camera HCM",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "logo": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "0123456789",
+      "contactType": "customer service",
+      "email": "contact@camerahcm.com",
+      "areaServed": "VN",
+      "availableLanguage": ["Vietnamese"]
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "123 Đường ABC",
+      "addressLocality": "Quận XYZ",
+      "addressRegion": "TP.HCM",
+      "postalCode": "700000",
+      "addressCountry": "VN"
+    }
+  }
+  </script>
+{% endblock %} 

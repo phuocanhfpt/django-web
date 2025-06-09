@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load vnd_filters %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="mb-4">Dashboard Quản trị</h2>
+  <div class="row mb-4">
+    <div class="col-md-2 col-6 mb-3">
+      <div class="card text-center shadow-sm h-100 d-flex align-items-center justify-content-center">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <div class="fs-2 fw-bold text-primary">{{ stats.orders_total }}</div>
+          <div>Đơn hàng</div>
+          <div class="small text-success">+{{ stats.orders_today }} hôm nay</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+      <div class="card text-center shadow-sm h-100 d-flex align-items-center justify-content-center">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <div class="fs-2 fw-bold text-info">{{ stats.contacts_total }}</div>
+          <div>Liên hệ</div>
+          <div class="small text-success">+{{ stats.contacts_today }} hôm nay</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+      <div class="card text-center shadow-sm h-100 d-flex align-items-center justify-content-center">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <div class="fs-2 fw-bold text-warning">{{ stats.consultations_total }}</div>
+          <div>Tư vấn</div>
+          <div class="small text-success">+{{ stats.consultations_today }} hôm nay</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+      <div class="card text-center shadow-sm h-100 d-flex align-items-center justify-content-center">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <div class="fs-2 fw-bold text-danger">{{ stats.post_comments_total }}</div>
+          <div>BL Bài viết</div>
+          <div class="small text-success">+{{ stats.post_comments_today }} hôm nay</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+      <div class="card text-center shadow-sm h-100 d-flex align-items-center justify-content-center">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <div class="fs-2 fw-bold text-secondary">{{ stats.product_comments_total }}</div>
+          <div>BL Sản phẩm</div>
+          <div class="small text-success">+{{ stats.product_comments_today }} hôm nay</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-2 col-6 mb-3">
+      <div class="card text-center shadow-sm h-100 d-flex align-items-center justify-content-center">
+        <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <div class="fs-4 fw-bold text-success" style="word-break:break-all;">{{ stats.revenue_today|vndcomma }} đ</div>
+          <div>Doanh số hôm nay</div>
+          <div class="small text-success">{{ stats.orders_today }} đơn hàng</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-4">
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">Đơn hàng mới nhất</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>ID</th><th>Khách</th><th>Ngày</th><th>Tổng</th><th>Trạng thái</th></tr></thead>
+            <tbody>
+              {% for o in orders %}
+              <tr>
+                <td>{{ o.id }}</td>
+                <td>{{ o.customer_name|default:o.user.username }}</td>
+                <td>{{ o.created_at|date:'d/m/Y H:i' }}</td>
+                <td>{{ o.total|floatformat:0 }} đ</td>
+                <td>{{ o.get_status_display }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">Liên hệ mới nhất</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>ID</th><th>Họ tên</th><th>Email</th><th>Điện thoại</th><th>Ngày</th></tr></thead>
+            <tbody>
+              {% for c in contacts %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.full_name }}</td>
+                <td>{{ c.email }}</td>
+                <td>{{ c.phone }}</td>
+                <td>{{ c.created_at|date:'d/m/Y H:i' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">BL Bài viết mới nhất</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>ID</th><th>Tên</th><th>Bài viết</th><th>Ngày</th></tr></thead>
+            <tbody>
+              {% for c in post_comments %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.name }}</td>
+                <td>{{ c.post.title }}</td>
+                <td>{{ c.created_at|date:'d/m/Y H:i' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">BL Sản phẩm mới nhất</div>
+        <div class="card-body p-0">
+          <table class="table table-sm mb-0">
+            <thead><tr><th>ID</th><th>Tên</th><th>Sản phẩm</th><th>Ngày</th></tr></thead>
+            <tbody>
+              {% for c in product_comments %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.name }}</td>
+                <td>{{ c.product.name }}</td>
+                <td>{{ c.created_at|date:'d/m/Y H:i' }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">Thống kê tổng quan</div>
+        <div class="card-body">
+          <canvas id="dashboardChart" height="80"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('dashboardChart').getContext('2d');
+const chart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: ['Đơn hàng', 'Liên hệ', 'Tư vấn', 'BL Bài viết', 'BL Sản phẩm', 'Doanh số (tr.đ)'],
+    datasets: [{
+      label: 'Tổng số',
+      data: [
+        {{ stats.orders_total }},
+        {{ stats.contacts_total }},
+        {{ stats.consultations_total }},
+        {{ stats.post_comments_total }},
+        {{ stats.product_comments_total }},
+        {{ stats.revenue_today_million }}
+      ],
+      backgroundColor: [
+        '#2196f3', '#17a2b8', '#ffc107', '#dc3545', '#6c757d', '#28a745'
+      ],
+      borderRadius: 8
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      title: { display: true, text: 'Thống kê tổng số đối tượng' }
+    },
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+</script>
+{% endblock %} 

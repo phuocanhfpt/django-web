@@ -1,0 +1,63 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Xác nhận đơn hàng - {{ site_name }}</title>
+</head>
+<body style="font-family: 'Segoe UI', 'Roboto', Arial, sans-serif; background: #f4f8fb; margin: 0; padding: 0;">
+  <div style="max-width: 520px; margin: 32px auto; background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(33,150,243,0.10); padding: 32px 28px;">
+    <div style="text-align: center;">
+      <img src="https://lapcamerahcm.vn/static/images/Logo.png" alt="{{ site_name }}" style="width: 60px; height: 60px; border-radius: 50%; background: #fff; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(33,150,243,0.08);">
+      <h2 style="color: #1769aa; margin-bottom: 8px; font-weight: 700; letter-spacing: 0.5px;">Xác nhận đơn hàng</h2>
+    </div>
+    <p style="font-size: 1.08em; color: #222; margin-bottom: 18px;">Xin chào <b>{{ order.full_name }}</b>,</p>
+    <p style="font-size: 1.05em; color: #222;">Cảm ơn bạn đã đặt hàng tại <b>{{ site_name }}</b>!</p>
+    <div style="margin: 18px 0 24px 0;">
+      <b>Mã đơn hàng:</b> #{{ order.id }}<br>
+      <b>Ngày đặt:</b> {{ order.created|date:'d/m/Y H:i' }}<br>
+      <b>Trạng thái:</b> {{ order.get_status_display }}
+    </div>
+    <h4 style="color:#1769aa; margin-bottom:10px;">Chi tiết đơn hàng</h4>
+    <table style="width:100%;border-collapse:collapse;font-size:1em;margin-bottom:18px;">
+      <thead>
+        <tr style="background:#e3f2fd;color:#1769aa;">
+          <th align="left" style="padding:8px 6px;">Sản phẩm</th>
+          <th align="center" style="padding:8px 6px;">SL</th>
+          <th align="right" style="padding:8px 6px;">Đơn giá</th>
+          <th align="right" style="padding:8px 6px;">Thành tiền</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order_items %}
+        <tr style="border-bottom:1px solid #f0f0f0;">
+          <td style="padding:8px 6px;">{{ item.product.name }}</td>
+          <td align="center" style="padding:8px 6px;">{{ item.quantity }}</td>
+          <td align="right" style="padding:8px 6px;">{{ item.price|floatformat:0|intcomma }}đ</td>
+          <td align="right" style="padding:8px 6px;">{{ item.get_cost|floatformat:0|intcomma }}đ</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="3" align="right" style="padding:8px 6px;"><b>Tổng cộng:</b></td>
+          <td align="right" style="padding:8px 6px;"><b style="color:#1769aa;">{{ order.total_cost|floatformat:0|intcomma }}đ</b></td>
+        </tr>
+      </tfoot>
+    </table>
+    <div style="margin-bottom:18px;">
+      <b>Phương thức thanh toán:</b> {{ order.get_payment_method_display }}<br>
+      <b>Địa chỉ nhận hàng:</b> {{ order.address }}, {{ order.city }}<br>
+      <b>Số điện thoại:</b> {{ order.phone }}
+    </div>
+    {% if order.note %}
+    <div style="margin-bottom:18px;"><b>Ghi chú:</b> {{ order.note }}</div>
+    {% endif %}
+    <div style="font-size: 0.98em; color: #888; text-align: center; margin-top: 32px;">
+      <b style="color: #1769aa;">{{ site_name }}</b><br>
+      Website: <a href="{{ site_url }}" style="color: #2196f3; text-decoration: none;">{{ site_url|cut:'https://' }}</a><br>
+      Hotline: <a href="tel:0822223000" style="color: #2196f3; text-decoration: none;">08.2222.3000</a>
+    </div>
+  </div>
+</body>
+</html> 

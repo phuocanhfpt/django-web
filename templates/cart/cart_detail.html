@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load vnd_filters %}
+
+{% block title %}Giỏ hàng - Shop Online{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Giỏ hàng</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h4 class="mb-0">Giỏ hàng của bạn</h4>
+    </div>
+    <div class="card-body">
+      {% if cart.items.all %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Số lượng</th>
+              <th class="d-none d-md-table-cell">Đơn giá</th>
+              <th>Tổng</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cart.items.all %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center flex-wrap flex-md-nowrap">
+                  {% if item.product.image %}
+                  <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width: 50px; height: 50px; object-fit: cover;" class="me-3 rounded mb-2 mb-md-0">
+                  {% endif %}
+                  <div>
+                    <h6 class="mb-1" style="font-size:1rem;">{{ item.product.name }}</h6>
+                    <small class="text-muted">{{ item.product.category.name }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <form method="post" action="{% url 'cart:cart_update' item.id %}" class="d-flex align-items-center cart-update-form">
+                  {% csrf_token %}
+                  <input type="number" name="quantity" value="{{ item.quantity }}" min="1" class="form-control form-control-sm rounded-pill" style="width: 70px;">
+                  <button type="submit" class="btn btn-sm btn-outline-primary ms-2 rounded-pill px-3 py-2" style="font-size:1rem;"> <i class="fas fa-sync-alt"></i> </button>
+                </form>
+              </td>
+              <td class="d-none d-md-table-cell">{{ item.product.price|vndcomma }}đ</td>
+              <td>{{ item.get_cost|vndcomma }}đ</td>
+              <td>
+                <form method="post" action="{% url 'cart:cart_remove' item.id %}" class="cart-remove-form">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-danger rounded-pill cart-remove-btn px-3 py-2" style="font-size:1rem;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-end d-none d-md-table-cell"><strong>Tổng cộng:</strong></td>
+              <td colspan="2" class="text-end text-md-start"><strong>{{ cart.get_total_cost|vndcomma }}đ</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-stretch align-items-md-center mt-4 gap-2 gap-md-0">
+        <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary rounded-pill w-100 w-md-auto mb-2 mb-md-0">
+          <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+        </a>
+        <a href="{% url 'orders:checkout' %}" class="btn btn-success rounded-pill w-100 w-md-auto">
+          <i class="fas fa-shopping-cart"></i> Tiến hành đặt hàng
+        </a>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <h3>Giỏ hàng của bạn đang trống</h3>
+        <p class="text-muted">Hãy thêm một số sản phẩm vào giỏ hàng của bạn.</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary rounded-pill">
+          <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.querySelectorAll('.cart-remove-form').forEach(function(form) {
+  form.addEventListener('submit', function(e) {
+    if (!confirm('Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?')) {
+      e.preventDefault();
+    }
+  });
+});
+
+document.querySelectorAll('.cart-update-form').forEach(function(form) {
+  form.addEventListener('submit', function(e) {
+    setTimeout(function() {
+      // Hiển thị thông báo cập nhật thành công sau khi reload
+      const alert = document.createElement('div');
+      alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-4';
+      alert.role = 'alert';
+      alert.innerHTML = 'Cập nhật số lượng thành công!<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+      document.body.appendChild(alert);
+      setTimeout(() => alert.remove(), 2500);
+    }, 500);
+  });
+});
+</script>
+{% endblock %} 

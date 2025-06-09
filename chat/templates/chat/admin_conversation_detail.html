@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">Chat với {% if conversation.user %}{{ conversation.user.username }}{% else %}{{ conversation.guest_name }}{% endif %}</h4>
+    <a href="{% url 'chat:admin_conversation_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Trở lại danh sách
+    </a>
+  </div>
+  <div class="card mb-3">
+    <div class="card-body" style="height:350px;overflow-y:auto;" id="messages">
+      {% for msg in messages %}
+        <div class="mb-2 {% if msg.is_admin %}text-end{% endif %}">
+          <span class="badge bg-{% if msg.is_admin %}primary{% else %}secondary{% endif %}">
+            {{ msg.sender }}
+          </span>
+          <span class="ms-2">{{ msg.content }}</span>
+          <span class="text-muted small ms-2">{{ msg.timestamp|date:'H:i d/m/Y' }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    <form id="chat-form" class="d-flex mt-2 gap-2" onsubmit="return false;">
+      {% csrf_token %}
+      <input type="text" id="message-input" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+      <button type="submit" class="btn btn-primary" onclick="sendMessage(event)"><i class="bi bi-send"></i></button>
+    </form>
+  </div>
+</div>
+
+<script>
+// Đảm bảo script chạy sau khi DOM đã load
+window.addEventListener('load', function() {
+  console.log('Window loaded!');
+  const form = document.getElementById('chat-form');
+  console.log('Form found:', form);
+  
+  if (form) {
+    // Thêm class mt-2 nếu chưa có
+    if (!form.classList.contains('mt-2')) {
+      form.classList.add('mt-2');
+    }
+    
+    // Kiểm tra input
+    const input = document.getElementById('message-input');
+    console.log('Input found:', input);
+    
+    if (!input) {
+      console.error('Input not found!');
+      return;
+    }
+  } else {
+    console.error('Form not found!');
+  }
+});
+
+// Hàm load tin nhắn
+function loadMessages() {
+  console.log('Loading messages...');
+  fetch(`/chat/api/messages/{{ conversation.id }}/`)
+    .then(res => res.json())
+    .then(data => {
+      const messages = document.getElementById('messages');
+      messages.innerHTML = '';
+      data.messages.forEach(msg => {
+        messages.innerHTML += `<div class='mb-2 ${msg.is_admin ? "text-end" : ""}'>
+          <span class='badge bg-${msg.is_admin ? "primary" : "secondary"}'>${msg.sender}</span>
+          <span class='ms-2'>${msg.content}</span>
+          <span class='text-muted small ms-2'>${msg.timestamp}</span>
+        </div>`;
+      });
+      messages.scrollTop = messages.scrollHeight;
+    })
+    .catch(err => {
+      console.error('Error loading messages:', err);
+    });
+}
+
+// Hàm gửi tin nhắn
+function sendMessage(e) {
+  console.log('Send button clicked!');
+  e.preventDefault();
+  
+  const input = document.getElementById('message-input');
+  const content = input.value.trim();
+  console.log('Message content:', content);
+  
+  if (!content) {
+    console.log('Empty message, not sending');
+    return false;
+  }
+  
+  const formData = new FormData();
+  formData.append('conversation_id', '{{ conversation.id }}');
+  formData.append('content', content);
+  
+  console.log('Sending request to /chat/api/send/');
+  fetch('/chat/api/send/', {
+    method: 'POST',
+    body: formData,
+    credentials: 'same-origin',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+    }
+  })
+  .then(res => {
+    console.log('Response received:', res.status);
+    return res.json();
+  })
+  .then(data => {
+    console.log('Data received:', data);
+    if (data.error) {
+      alert('Lỗi gửi tin: ' + data.error);
+      return;
+    }
+    input.value = '';
+    // Reload messages
+    loadMessages();
+  })
+  .catch(err => {
+    console.error('Error:', err);
+    alert('Lỗi gửi tin nhắn!');
+  });
+  return false;
+}
+
+// Tự động load tin nhắn mới mỗi 3 giây
+setInterval(loadMessages, 3000);
+
+// Load tin nhắn lần đầu
+loadMessages();
+</script>
+{% endblock %} 

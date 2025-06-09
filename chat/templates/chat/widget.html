@@ -1,0 +1,155 @@
+<style>
+#chat-popup .chat-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+#chat-popup .chat-message.admin {
+  align-items: flex-end;
+}
+#chat-popup .bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px rgba(33,150,243,0.08);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  position: relative;
+  word-break: break-word;
+}
+#chat-popup .bubble.customer {
+  background: #f1f1f1;
+  color: #222;
+  border-bottom-left-radius: 4px;
+  margin-right: auto;
+}
+#chat-popup .bubble.admin {
+  background: #2196f3;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+#chat-popup .sender {
+  font-size: 0.92em;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: #1769aa;
+}
+#chat-popup .sender.admin {
+  color: #2196f3;
+  text-align: right;
+}
+#chat-popup .timestamp {
+  font-size: 0.85em;
+  color: #888;
+  margin-top: 2px;
+  text-align: right;
+}
+</style>
+<div id="chat-popup" class="card shadow" style="display:none;min-width:320px;max-width:350px;position:fixed;bottom:100px;right:24px;z-index:10000;">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-chat-dots me-2"></i>Hỗ trợ trực tuyến</span>
+    <button type="button" class="btn-close btn-close-white" id="close-chat-btn"></button>
+  </div>
+  <div class="card-body" style="height:320px;overflow-y:auto;background:#f8f9fa;" id="chat-messages"></div>
+  <div class="card-footer">
+    <form id="chat-form" class="d-flex gap-2">
+      <input type="text" id="chat-input" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+    </form>
+  </div>
+</div>
+<script>
+let conversationId = null;
+let guestName = null;
+
+function openChatPopup() {
+  document.getElementById('chat-popup').style.display = 'block';
+  if (!conversationId) {
+    fetch('/chat/get-or-create-conversation/')
+      .then(res => res.json())
+      .then(data => {
+        if (data.need_name) {
+          guestName = prompt('Vui lòng nhập tên của bạn:');
+          if (guestName) {
+            fetch('/chat/get-or-create-conversation/?guest_name=' + encodeURIComponent(guestName))
+              .then(res => res.json())
+              .then(data2 => {
+                conversationId = data2.conversation_id;
+                guestName = data2.guest_name;
+                loadMessages();
+              });
+          }
+        } else {
+          conversationId = data.conversation_id;
+          guestName = data.guest_name;
+          loadMessages();
+        }
+      });
+  } else {
+    loadMessages();
+  }
+}
+
+function closeChatPopup() {
+  document.getElementById('chat-popup').style.display = 'none';
+}
+
+function loadMessages() {
+  if (!conversationId) return;
+  fetch(`/chat/api/messages/${conversationId}/`)
+    .then(res => res.json())
+    .then(data => {
+      const messages = document.getElementById('chat-messages');
+      messages.innerHTML = '';
+      data.messages.forEach(msg => {
+        const isAdmin = msg.is_admin;
+        messages.innerHTML += `
+          <div class="chat-message${isAdmin ? ' admin' : ''}">
+            <div class="sender${isAdmin ? ' admin' : ''}">${msg.sender}</div>
+            <div class="bubble${isAdmin ? ' admin' : ' customer'}">${msg.content}</div>
+            <div class="timestamp">${msg.timestamp}</div>
+          </div>
+        `;
+      });
+      messages.scrollTop = messages.scrollHeight;
+    });
+}
+
+// Polling mỗi 3 giây để lấy tin nhắn mới
+setInterval(function() {
+  if (document.getElementById('chat-popup').style.display === 'block' && conversationId) {
+    loadMessages();
+  }
+}, 3000);
+
+document.addEventListener('DOMContentLoaded', function() {
+  const openBtn = document.getElementById('open-chat-btn');
+  const closeBtn = document.getElementById('close-chat-btn');
+  if (openBtn) openBtn.onclick = openChatPopup;
+  if (closeBtn) closeBtn.onclick = closeChatPopup;
+  const chatForm = document.getElementById('chat-form');
+  if (chatForm) {
+    chatForm.onsubmit = function(e) {
+      e.preventDefault();
+      const input = document.getElementById('chat-input');
+      if (input.value.trim() && conversationId) {
+        const formData = new FormData();
+        formData.append('conversation_id', conversationId);
+        formData.append('content', input.value);
+        fetch('/chat/api/send/', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        })
+        .then(res => res.json())
+        .then(data => {
+          input.value = '';
+          loadMessages();
+        });
+      }
+    };
+  }
+});
+</script> 

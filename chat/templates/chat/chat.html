@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex align-items-center">
+          <i class="bi bi-chat-dots me-2"></i>
+          <span>Chat với {{ other_user.username }}</span>
+        </div>
+        <div class="card-body" style="background:#f8f9fa;">
+          <div id="messages" style="height:320px;overflow-y:auto;padding:8px 0;">
+            {% for msg in messages %}
+              <div class="mb-2 {% if msg.sender == user %}text-end{% endif %}">
+                <span class="badge bg-{% if msg.sender == user %}success{% else %}secondary{% endif %}">
+                  {{ msg.sender.username }}
+                </span>
+                <span class="ms-2">{{ msg.content }}</span>
+                <span class="text-muted small ms-2">{{ msg.timestamp|date:'H:i d/m/Y' }}</span>
+              </div>
+            {% endfor %}
+          </div>
+          <form id="chat-form" class="d-flex mt-3 gap-2">
+            <input type="text" id="message-input" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const userId = "{{ other_user.id }}";
+  const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const chatSocket = new WebSocket(
+    ws_scheme + '://' + window.location.host + '/ws/chat/' + userId + '/'
+  );
+  chatSocket.onmessage = function(e) {
+    const data = JSON.parse(e.data);
+    const messages = document.getElementById('messages');
+    const isSelf = data.sender_id == {{ user.id }};
+    messages.innerHTML += `<div class='mb-2 ${isSelf ? "text-end" : ""}'>
+      <span class='badge bg-${isSelf ? "success" : "secondary"}'>${data.sender_username}</span>
+      <span class='ms-2'>${data.message}</span>
+      <span class='text-muted small ms-2'>${data.timestamp}</span>
+    </div>`;
+    messages.scrollTop = messages.scrollHeight;
+  };
+  document.getElementById('chat-form').onsubmit = function(e) {
+    e.preventDefault();
+    const input = document.getElementById('message-input');
+    if (input.value.trim() !== '') {
+      chatSocket.send(JSON.stringify({'message': input.value}));
+      input.value = '';
+    }
+  };
+  // Tự động cuộn xuống cuối khi load trang
+  window.onload = function() {
+    const messages = document.getElementById('messages');
+    messages.scrollTop = messages.scrollHeight;
+  };
+</script>
+{% endblock %} 

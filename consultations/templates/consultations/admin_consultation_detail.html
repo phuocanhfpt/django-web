@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4" style="max-width:600px;">
+  <h3>Chi tiết Đăng ký Tư vấn</h3>
+  {% if success %}
+    <div class="alert alert-success">Cập nhật thành công!</div>
+  {% endif %}
+  <form method="post" class="card shadow-sm p-4">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="form-label fw-bold">Họ tên</label>
+      <input type="text" class="form-control" value="{{ consultation.full_name }}" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Điện thoại</label>
+      <input type="text" class="form-control" value="{{ consultation.phone }}" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Địa chỉ</label>
+      <input type="text" class="form-control" value="{{ consultation.address }}" readonly>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Nội dung</label>
+      <textarea class="form-control" rows="3" readonly>{{ consultation.content }}</textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Trạng thái</label>
+      <select name="status" class="form-select">
+        {% for value, label in consultation.STATUS_CHOICES %}
+          <option value="{{ value }}" {% if consultation.status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-bold">Ghi chú</label>
+      <textarea name="notes" class="form-control" rows="2">{{ consultation.notes }}</textarea>
+    </div>
+    <div class="mb-3 text-end">
+      <a href="/consultations/admin/" class="btn btn-secondary">Quay lại</a>
+      <button type="submit" class="btn btn-primary">Lưu</button>
+    </div>
+  </form>
+</div>
+{% endblock %} 

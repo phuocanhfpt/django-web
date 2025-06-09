@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% load singlepage_extras %}
+
+{% block title %}{{ page.title }} | {{ block.super }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ page.title }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="bg-white rounded-4 shadow-sm p-4 mb-4">
+    <h1 class="mb-3">{{ page.title }}</h1>
+    <!-- Nút chia sẻ -->
+    <div class="mb-3 d-flex align-items-center gap-2">
+      <span class="fw-bold me-2">Chia sẻ:</span>
+      <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Facebook">
+        <i class="bi bi-facebook"></i>
+      </a>
+      <a href="https://zalo.me/share/url?url={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Zalo">
+        <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+          <circle cx="16" cy="16" r="16" fill="#008fe5"/>
+          <text x="16" y="21" text-anchor="middle" font-size="14" font-family="Arial, Helvetica, sans-serif" fill="#fff" font-weight="bold">Zalo</text>
+        </svg>
+      </a>
+      <a href="https://www.messenger.com/share?link={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Messenger">
+        <i class="bi bi-messenger"></i>
+      </a>
+      <button type="button" class="share-btn border-0 bg-transparent p-0" id="copyLinkBtn" title="Sao chép link">
+        <i class="bi bi-link-45deg"></i>
+      </button>
+      <span id="copyLinkMsg" class="text-success ms-2" style="display:none;font-size:0.97rem;">Đã sao chép!</span>
+    </div>
+    <div class="mb-4" id="toc"></div>
+    <div class="page-content">
+      <div class="accordion" id="faqAccordion">
+        {{ page.content|render_shortcodes|safe }}
+      </div>
+    </div>
+    <div class="text-end text-muted small mt-4">Cập nhật: {{ page.updated_at|date:'d/m/Y H:i' }}</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+    margin: 18px auto;
+    display: block;
+}
+@media (max-width: 575.98px) {
+  .page-content img {
+    border-radius: 10px;
+    margin: 12px auto;
+  }
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f4f8fb;
+  color: #1769aa;
+  font-size: 1.25rem;
+  margin-right: 2px;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  border: none;
+  outline: none;
+  text-decoration: none;
+}
+.share-btn:hover {
+  background: #e3f2fd;
+  color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+}
+.toc-box {
+  background: #f4f8fb;
+  border: 1px solid #e3f2fd;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(33,150,243,0.06);
+  font-size: 1.01rem;
+}
+.toc-title {
+  color: #1769aa;
+  font-size: 1.08rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toc-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.toc-item {
+  margin-bottom: 6px;
+}
+.toc-h2 > a {
+  color: #1769aa;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.18s;
+}
+.toc-h2 > a:hover { color: #0d6efd; }
+.toc-h3 {
+  margin-left: 18px;
+  font-size: 0.97em;
+}
+.toc-h3 > a {
+  color: #1769aa;
+  text-decoration: none;
+  font-weight: 400;
+}
+.toc-h3 > a:hover { color: #0d6efd; }
+@media (max-width: 575.98px) {
+  .toc-box { padding: 10px 8px; font-size: 0.97rem; }
+  .toc-title { font-size: 1rem; }
+}
+.blockquote {
+  border-left: 4px solid #0d6efd;
+  padding-left: 1rem;
+  background: #f8f9fa;
+}
+.blockquote-footer {
+  color: #1769aa;
+  font-style: italic;
+  font-size: 1rem;
+}
+.code-block {
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  padding: 1rem 1rem 1rem 1rem;
+  position: relative;
+  overflow: auto;
+}
+.code-block pre {
+  background: transparent;
+  border: none;
+  margin-bottom: 0;
+  padding: 0;
+}
+.btn-copy-code {
+  z-index: 2;
+  font-size: 1.1rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.btn-copy-code:hover {
+  opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<!-- Highlight.js for code block -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script>
+document.getElementById('copyLinkBtn')?.addEventListener('click', function() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(function() {
+    const msg = document.getElementById('copyLinkMsg');
+    if (msg) {
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 1800);
+    }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Copy code button
+  document.querySelectorAll('.btn-copy-code').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = btn.parentElement.querySelector('code');
+      if (code) {
+        const text = code.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          btn.innerHTML = '<i class="bi bi-clipboard-check"></i>';
+          setTimeout(() => {
+            btn.innerHTML = '<i class="bi bi-clipboard"></i>';
+          }, 1200);
+        });
+      }
+    });
+  });
+
+  // TOC
+  const content = document.querySelector('.page-content');
+  const toc = document.getElementById('toc');
+  if (!content || !toc) return;
+  const headings = content.querySelectorAll('h2, h3');
+  if (headings.length === 0) return;
+  let tocHtml = '<div class="toc-box"><div class="toc-title fw-bold mb-2"><i class="bi bi-list-ul me-1"></i>Mục lục bài viết</div><ul class="toc-list">';
+  headings.forEach((el, idx) => {
+    if (!el.id) {
+      el.id = 'toc-h' + idx;
+    }
+    const tag = el.tagName.toLowerCase();
+    tocHtml += `<li class="toc-item toc-${tag}"><a href="#${el.id}">${el.textContent}</a></li>`;
+  });
+  tocHtml += '</ul></div>';
+  toc.innerHTML = tocHtml;
+  // Cuộn mượt khi click
+  toc.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.getElementById(this.getAttribute('href').slice(1));
+      if (target) {
+        window.scrollTo({top: target.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth'});
+      }
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block extra_head %}
+  <title>{% firstof page.seo_title page.title %} | {{ site_name|default:'Website' }}</title>
+  <meta name="description" content="{% firstof page.seo_description page.meta_description page.content|striptags|truncatechars:160 %}">
+  <meta name="keywords" content="{% firstof page.seo_keywords '' %}">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{% firstof page.seo_title page.title %}">
+  <meta property="og:description" content="{% firstof page.seo_description page.meta_description page.content|striptags|truncatechars:160 %}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  {% if page.og_image %}
+    <meta property="og:image" content="{{ page.og_image.url }}">
+  {% endif %}
+  <meta property="og:site_name" content="{{ site_name|default:'Website' }}">
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% firstof page.seo_title page.title %}">
+  <meta name="twitter:description" content="{% firstof page.seo_description page.meta_description page.content|striptags|truncatechars:160 %}">
+  {% if page.og_image %}
+    <meta name="twitter:image" content="{{ page.og_image.url }}">
+  {% endif %}
+  <!-- Article Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "{% firstof page.seo_title page.title %}",
+    "description": "{% firstof page.seo_description page.meta_description page.content|striptags|truncatechars:160 %}",
+    "datePublished": "{{ page.created|date:'c' }}",
+    "dateModified": "{{ page.updated|date:'c' }}",
+    "author": {
+      "@type": "Person",
+      "name": "{{ page.author|default:'Admin' }}"
+    },
+    "image": "{% if page.og_image %}{{ page.og_image.url }}{% endif %}",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{ request.build_absolute_uri }}"
+    }
+  }
+  </script>
+  <!-- Breadcrumb Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "{{ page.title }}",
+        "item": "{{ request.build_absolute_uri }}"
+      }
+    ]
+  }
+  </script>
+{% endblock %} 

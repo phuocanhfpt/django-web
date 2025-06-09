@@ -1,0 +1,139 @@
+<span id="admin-chat-bell-container" style="margin-left: 16px;">
+  <button id="admin-chat-bell" class="btn btn-link p-0 position-relative" style="color: #fff;">
+    <i class="bi bi-bell fs-5"></i>
+    <span id="admin-chat-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.7em; display:none;">0</span>
+  </button>
+  <div id="admin-chat-dropdown" class="card shadow" style="display:none;position:absolute;right:0;top:36px;min-width:260px;z-index:10001;">
+    <div class="card-header py-2 px-3 bg-primary text-white">Tin nhắn chưa đọc</div>
+    <ul class="list-group list-group-flush" id="admin-chat-unread-list" style="max-height:320px;overflow-y:auto;"></ul>
+  </div>
+</span>
+<div id="admin-chat-popups"></div>
+<audio id="admin-chat-audio" src="https://cdn.pixabay.com/audio/2022/07/26/audio_124bfa1c3b.mp3" preload="auto"></audio>
+<script>
+let lastUnreadCount = 0;
+let unreadConversations = [];
+function checkAdminUnread() {
+  fetch('/chat/api/admin-unread-list/')
+    .then(res => res.json())
+    .then(data => {
+      const badge = document.getElementById('admin-chat-badge');
+      unreadConversations = data.unread_list || [];
+      if (unreadConversations.length > 0) {
+        badge.textContent = unreadConversations.length;
+        badge.style.display = '';
+        if (unreadConversations.length > lastUnreadCount) {
+          document.getElementById('admin-chat-audio').play();
+        }
+      } else {
+        badge.style.display = 'none';
+      }
+      lastUnreadCount = unreadConversations.length;
+      renderUnreadDropdown();
+    });
+}
+setInterval(checkAdminUnread, 5000);
+checkAdminUnread();
+
+function renderUnreadDropdown() {
+  const list = document.getElementById('admin-chat-unread-list');
+  list.innerHTML = '';
+  if (unreadConversations.length === 0) {
+    list.innerHTML = '<li class="list-group-item text-center text-muted">Không có tin nhắn mới</li>';
+    return;
+  }
+  unreadConversations.forEach(conv => {
+    const li = document.createElement('li');
+    li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+    li.style.cursor = 'pointer';
+    li.onclick = function() {
+      openAdminChatPopup(conv.conversation_id);
+      document.getElementById('admin-chat-dropdown').style.display = 'none';
+      setTimeout(checkAdminUnread, 500);
+    };
+    li.innerHTML = `<span><i class='bi bi-person-circle me-1'></i>${conv.customer_name || 'Khách #'+conv.conversation_id}</span><span class='badge bg-danger'>${conv.unread_count}</span>`;
+    list.appendChild(li);
+  });
+}
+
+document.getElementById('admin-chat-bell').onclick = function(e) {
+  e.stopPropagation();
+  const dropdown = document.getElementById('admin-chat-dropdown');
+  dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+};
+document.addEventListener('click', function() {
+  document.getElementById('admin-chat-dropdown').style.display = 'none';
+});
+
+function openAdminChatPopup(conversationId) {
+  if (document.getElementById('admin-chat-popup-' + conversationId)) {
+    document.getElementById('admin-chat-popup-' + conversationId).style.display = 'block';
+    return;
+  }
+  const offset = 32 + document.querySelectorAll("[id^='admin-chat-popup-']").length * 370;
+  const popup = document.createElement('div');
+  popup.id = 'admin-chat-popup-' + conversationId;
+  popup.className = 'card shadow';
+  popup.style = 'min-width:320px;max-width:350px;position:fixed;top:80px;right:' + offset + 'px;z-index:10000;';
+  popup.innerHTML = `
+    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+      <span><i class="bi bi-chat-dots me-2"></i>Chat với khách #${conversationId}</span>
+      <button type="button" class="btn-close btn-close-white" onclick="document.getElementById('admin-chat-popup-${conversationId}').remove()"></button>
+    </div>
+    <div class="card-body" style="height:320px;overflow-y:auto;" id="admin-chat-messages-${conversationId}"></div>
+    <div class="card-footer">
+      <form onsubmit="return sendAdminChatMessage(${conversationId})" class="d-flex gap-2">
+        <input type="text" id="admin-chat-input-${conversationId}" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+      </form>
+    </div>
+  `;
+  document.getElementById('admin-chat-popups').appendChild(popup);
+  loadAdminMessages(conversationId);
+  popup._interval = setInterval(function() {
+    if (document.getElementById('admin-chat-popup-' + conversationId)) {
+      loadAdminMessages(conversationId);
+    } else {
+      clearInterval(popup._interval);
+    }
+  }, 3000);
+}
+
+function loadAdminMessages(conversationId) {
+  fetch(`/chat/api/messages/${conversationId}/`)
+    .then(res => res.json())
+    .then(data => {
+      const messages = document.getElementById('admin-chat-messages-' + conversationId);
+      if (!messages) return;
+      messages.innerHTML = '';
+      data.messages.forEach(msg => {
+        messages.innerHTML += `<div class='mb-2 ${msg.is_admin ? "text-end" : ""}'>
+          <span class='badge bg-${msg.is_admin ? "primary" : "secondary"}'>${msg.sender}</span>
+          <span class='ms-2'>${msg.content}</span>
+          <span class='text-muted small ms-2'>${msg.timestamp}</span>
+        </div>`;
+      });
+      messages.scrollTop = messages.scrollHeight;
+    });
+}
+
+function sendAdminChatMessage(conversationId) {
+  const input = document.getElementById('admin-chat-input-' + conversationId);
+  if (input.value.trim()) {
+    const formData = new FormData();
+    formData.append('conversation_id', conversationId);
+    formData.append('content', input.value);
+    fetch('/chat/api/send/', {
+      method: 'POST',
+      body: formData,
+      credentials: 'same-origin'
+    })
+    .then(res => res.json())
+    .then(data => {
+      input.value = '';
+      loadAdminMessages(conversationId);
+    });
+  }
+  return false;
+}
+</script> 

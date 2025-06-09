@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Đăng ký tài khoản - Camera HCM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'account_login' %}" class="text-primary text-decoration-none">Đăng nhập</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Đăng ký tài khoản</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:430px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <h2 class="mb-4 text-center"><i class="bi bi-person-plus me-2"></i>Đăng ký tài khoản</h2>
+            <form method="post" novalidate autocomplete="off">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                    <div class="input-group">
+                        {% if field.name == 'username' %}
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        {% elif field.name == 'email' %}
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        {% elif field.name == 'full_name' %}
+                        <span class="input-group-text"><i class="bi bi-card-text"></i></span>
+                        {% elif field.name == 'phone' %}
+                        <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                        {% elif field.name == 'password1' or field.name == 'password2' %}
+                        <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                        {% endif %}
+                        {{ field }}
+                    </div>
+                    {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-success w-100 py-2">Đăng ký</button>
+            </form>
+            <div class="mt-3 text-center">
+                <a href="{% url 'account_login' %}">Đã có tài khoản? Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load vnd_filters %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.id }} - Camera HCM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'orders:order_list' %}" class="text-primary text-decoration-none">Đơn hàng của tôi</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Chi tiết đơn hàng #{{ order.id }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-5">
+    <div class="row justify-content-center">
+        <div class="col-xl-10 col-lg-11 col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Chi tiết đơn hàng #{{ order.id }}</h5>
+                    <a href="{% url 'orders:order_list' %}" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Quay lại danh sách
+                    </a>
+                </div>
+                <div class="card-body">
+                    <!-- Thông tin đơn hàng -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Thông tin đơn hàng</h6>
+                            <p class="mb-1"><strong>Mã đơn hàng:</strong> #{{ order.id }}</p>
+                            <p class="mb-1"><strong>Ngày đặt:</strong> {{ order.created|date:"d/m/Y H:i" }}</p>
+                            <p class="mb-1"><strong>Trạng thái:</strong> 
+                                <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-3">Thông tin thanh toán</h6>
+                            <p class="mb-1"><strong>Phương thức thanh toán:</strong> {{ order.get_payment_method_display }}</p>
+                            <p class="mb-1"><strong>Tổng tiền trước giảm giá:</strong> {{ order.total_cost|vndcomma }}đ</p>
+                            {% if order.discount and order.discount > 0 %}
+                            <p class="mb-1 text-success"><strong>Giảm giá:</strong> -{{ order.discount|vndcomma }}đ</p>
+                            {% endif %}
+                            <p class="mb-1"><strong class="text-primary">Tổng tiền thanh toán:</strong> <span class="text-primary fw-bold fs-5">{{ order.total_price|vndcomma }}đ</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin giao hàng -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted mb-3">Thông tin giao hàng</h6>
+                            <p class="mb-1"><strong>Họ tên:</strong> {{ order.full_name }}</p>
+                            <p class="mb-1"><strong>Số điện thoại:</strong> {{ order.phone }}</p>
+                            <p class="mb-1"><strong>Địa chỉ:</strong> {{ order.address }}</p>
+                            {% if order.note %}
+                            <p class="mb-1"><strong>Ghi chú:</strong> {{ order.note }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Danh sách sản phẩm -->
+                    <h6 class="text-muted mb-3">Sản phẩm đã đặt</h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Sản phẩm</th>
+                                    <th class="text-center">Số lượng</th>
+                                    <th class="text-end">Đơn giá</th>
+                                    <th class="text-end">Thành tiền</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image %}
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0">{{ item.product.name }}</h6>
+                                                {% if item.product.sku %}
+                                                <small class="text-muted">SKU: {{ item.product.sku }}</small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">{{ item.quantity }}</td>
+                                    <td class="text-end">{{ item.price|vndcomma }}đ</td>
+                                    <td class="text-end">{{ item.get_cost|vndcomma }}đ</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Tổng tiền trước giảm giá:</strong></td>
+                                    <td class="text-end"><strong>{{ order.total_cost|vndcomma }}đ</strong></td>
+                                </tr>
+                                {% if order.discount and order.discount > 0 %}
+                                <tr>
+                                    <td colspan="3" class="text-end text-success"><strong>Giảm giá:</strong></td>
+                                    <td class="text-end text-success"><strong>-{{ order.discount|vndcomma }}đ</strong></td>
+                                </tr>
+                                {% endif %}
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong class="text-primary">Tổng tiền thanh toán:</strong></td>
+                                    <td class="text-end"><strong class="text-primary fs-5">{{ order.total_price|vndcomma }}đ</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

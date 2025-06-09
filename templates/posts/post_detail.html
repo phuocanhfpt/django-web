@@ -1,0 +1,558 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load singlepage_extras %}
+
+{% block title %}{{ post.meta_title|default:post.title }} - {{ post.category.name|default:'Tin tức' }} | {{ site_settings.site_name }}{% endblock %}
+
+{% block meta_description %}{{ post.meta_description|default:post.short_description|default:post.content|striptags|truncatechars:160 }}{% endblock %}
+
+{% block meta_keywords %}{{ post.get_tags_list|join:', ' }}, {{ post.category.name|default:'Tin tức' }}, blog, tin tức, camera, an ninh, thiết bị, camera giám sát, camera an ninh, thiết bị bảo mật{% endblock %}
+
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+
+{% block meta_og %}
+  <meta property="og:type" content="article">
+<meta property="og:title" content="{{ post.meta_title|default:post.title }} - {{ post.category.name|default:'Tin tức' }} | {{ site_settings.site_name }}">
+<meta property="og:description" content="{{ post.meta_description|default:post.short_description|default:post.content|striptags|truncatechars:160 }}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:image" content="{% if post.image %}{{ post.image.url }}{% endif %}">
+<meta property="og:site_name" content="{{ site_settings.site_name }}">
+<meta property="article:published_time" content="{{ post.created|date:'c' }}">
+<meta property="article:modified_time" content="{{ post.updated|date:'c' }}">
+<meta property="article:section" content="{{ post.category.name|default:'Tin tức' }}">
+  <meta property="article:author" content="{{ post.author.get_full_name|default:post.author.username }}">
+  {% for tag in post.tags.all %}
+  <meta property="article:tag" content="{{ tag.name }}">
+  {% endfor %}
+{% endblock %}
+  
+{% block meta_twitter %}
+  <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ post.meta_title|default:post.title }} - {{ post.category.name|default:'Tin tức' }} | {{ site_settings.site_name }}">
+<meta name="twitter:description" content="{{ post.meta_description|default:post.short_description|default:post.content|striptags|truncatechars:160 }}">
+  <meta name="twitter:image" content="{% if post.image %}{{ post.image.url }}{% endif %}">
+  {% for tag in post.tags.all %}
+  <meta name="twitter:label1" content="Tags">
+  <meta name="twitter:data1" content="{{ tag.name }}">
+  {% endfor %}
+{% endblock %}
+
+{% block extra_head %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/blog/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+      "name": "{{ post.category.name|default:'Tin tức' }}",
+      "item": "{{ post.category.get_absolute_url }}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+        "name": "{{ post.title }}",
+        "item": "{{ request.build_absolute_uri }}"
+      }
+    ]
+  }
+  </script>
+
+  <!-- Article Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+  "headline": "{{ post.meta_title|default:post.title|escapejs }}",
+  "description": "{{ post.meta_description|default:post.short_description|default:post.content|striptags|truncatechars:200|escapejs }}",
+    "image": "{% if post.image %}{{ post.image.url }}{% endif %}",
+  "datePublished": "{{ post.created|date:'c' }}",
+  "dateModified": "{{ post.updated|date:'c' }}",
+    "author": {
+      "@type": "Person",
+    "name": "{{ post.author.get_full_name|default:post.author.username|escapejs }}"
+    },
+    "publisher": {
+      "@type": "Organization",
+    "name": "{{ site_settings.site_name|escapejs }}",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{ request.build_absolute_uri }}"
+  },
+  "keywords": "{{ post.get_tags_list|join:', '|escapejs }}",
+  "articleSection": "{{ post.category.name|default:'Tin tức'|escapejs }}",
+  "about": [
+    {% for tag in post.tags.all %}
+    {
+      "@type": "Thing",
+      "name": "{{ tag.name|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+  }
+  </script>
+{{ block.super }}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.card, .shadow-sm {
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+  border: none;
+  margin-bottom: 1.5rem;
+}
+.card-title, h1, h3, h5 {
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-weight: 700;
+  color: #1769aa;
+  margin-top: 0.5em;
+  margin-bottom: 0.6em;
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+}
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.card-img-top {
+  border-radius: 14px 14px 0 0;
+  object-fit: cover;
+}
+.card-footer {
+  background: #fff;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+}
+.btn-outline-primary, .btn-primary, .btn {
+  border-radius: 16px !important;
+  font-size: 0.97rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  box-shadow: none !important;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.btn-outline-primary:hover, .btn-primary:hover {
+  background: #1769aa !important;
+  color: #fff !important;
+}
+.badge.bg-primary {
+  background: #2196f3 !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 12px;
+  font-size: 0.97rem;
+}
+.breadcrumb {
+  font-size: 1.01rem;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(13,110,253,0.06);
+}
+@media (max-width: 575.98px) {
+  .card-title, h1, h3, h5 {
+    font-size: 1.01rem;
+  }
+  .card-img-top {
+    height: 120px !important;
+  }
+}
+h1, h2, h3, h4, h5 {
+  color: #1769aa !important;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.section-title {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-size: 1.28rem;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 1.2rem;
+  padding-bottom: 7px;
+  letter-spacing: 0.2px;
+  gap: 8px;
+}
+.section-title .icon {
+  font-size: 1.05rem;
+  color: #e53935;
+  margin-right: 6px;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.section-title:after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #e53935 0 70px, #e5393555 70px 100%);
+  border-radius: 2px;
+  z-index: 1;
+}
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 1.05rem;
+    padding-bottom: 5px;
+  }
+  .section-title:after {
+    height: 2px;
+    background: linear-gradient(90deg, #e53935 0 36px, #e5393555 36px 100%);
+  }
+}
+.share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f4f8fb;
+  color: #1769aa;
+  font-size: 1.25rem;
+  margin-right: 2px;
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  border: none;
+  outline: none;
+  text-decoration: none;
+}
+.share-btn:hover {
+  background: #e3f2fd;
+  color: #0d6efd;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+}
+.toc-box {
+  background: #f4f8fb;
+  border: 1px solid #e3f2fd;
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 8px rgba(33,150,243,0.06);
+  font-size: 1.01rem;
+}
+.toc-title {
+  color: #1769aa;
+  font-size: 1.08rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toc-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+.toc-item {
+  margin-bottom: 6px;
+}
+.toc-h2 > a {
+  color: #1769aa;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.18s;
+}
+.toc-h2 > a:hover { color: #0d6efd; }
+.toc-h3 {
+  margin-left: 18px;
+  font-size: 0.97em;
+}
+.toc-h3 > a {
+  color: #1769aa;
+  text-decoration: none;
+  font-weight: 400;
+}
+.toc-h3 > a:hover { color: #0d6efd; }
+@media (max-width: 575.98px) {
+  .toc-box { padding: 10px 8px; font-size: 0.97rem; }
+  .toc-title { font-size: 1rem; }
+}
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(13,110,253,0.10);
+    margin: 18px auto;
+    display: block;
+}
+@media (max-width: 575.98px) {
+  .post-content img {
+    border-radius: 10px;
+    margin: 12px auto;
+  }
+}
+.blockquote {
+  border-left: 4px solid #0d6efd;
+  padding-left: 1rem;
+  background: #f8f9fa;
+}
+.blockquote-footer {
+  color: #1769aa;
+  font-style: italic;
+  font-size: 1rem;
+}
+.code-block {
+  background: #f8f9fa;
+  border: 1px solid #e3e6ea;
+  border-radius: 8px;
+  padding: 1rem 1rem 1rem 1rem;
+  position: relative;
+  overflow: auto;
+}
+.code-block pre {
+  background: transparent;
+  border: none;
+  margin-bottom: 0;
+  padding: 0;
+}
+.btn-copy-code {
+  z-index: 2;
+  font-size: 1.1rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.btn-copy-code:hover {
+  opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <h1 class="mb-3" style="margin-top: 0.2em;">{{ post.title }}</h1>
+      <!-- Nút chia sẻ -->
+      <div class="mb-3 d-flex align-items-center gap-2">
+        <span class="fw-bold me-2">Chia sẻ:</span>
+        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Facebook">
+          <i class="bi bi-facebook"></i>
+        </a>
+        <a href="https://zalo.me/share/url?url={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Zalo">
+          <svg width="22" height="22" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+            <circle cx="16" cy="16" r="16" fill="#008fe5"/>
+            <text x="16" y="21" text-anchor="middle" font-size="14" font-family="Arial, Helvetica, sans-serif" fill="#fff" font-weight="bold">Zalo</text>
+          </svg>
+        </a>
+        <a href="https://www.messenger.com/share?link={{ request.build_absolute_uri }}" target="_blank" rel="noopener" class="share-btn" title="Chia sẻ Messenger">
+          <i class="bi bi-messenger"></i>
+        </a>
+        <button type="button" class="share-btn border-0 bg-transparent p-0" id="copyLinkBtn" title="Sao chép link">
+          <i class="bi bi-link-45deg"></i>
+        </button>
+        <span id="copyLinkMsg" class="text-success ms-2" style="display:none;font-size:0.97rem;">Đã sao chép!</span>
+      </div>
+      {% if post.image %}
+      <img src="{{ post.image.url }}" class="img-fluid rounded mb-3" alt="{{ post.title }}">
+      {% endif %}
+      <div class="mb-3 text-muted">Ngày đăng: {{ post.created|date:'d/m/Y H:i' }}</div>
+      <div class="mb-4" id="toc"></div>
+      <div class="post-content">{{ post.content|render_shortcodes|safe }}</div>
+
+      <!-- Post Tags -->
+      {% if post.tags.all %}
+      <div class="post-tags mt-4">
+        <h3 class="section-title"><i class="fas fa-tags icon"></i>Tags</h3>
+        <div class="d-flex flex-wrap gap-2">
+          {% for tag in post.tags.all %}
+          <a href="{% url 'posts:tag_list' tag.slug %}" class="badge bg-secondary text-decoration-none">
+            <i class="fas fa-tag me-1"></i>{{ tag.name }}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Bình luận (Đồng bộ style với sản phẩm) -->
+      <section class="mt-5">
+        <h3 class="section-title"><i class="fas fa-comments icon"></i>Bình luận bài viết</h3>
+        <div class="card shadow-sm mb-4">
+          <div class="card-body">
+            {% if user.is_authenticated %}
+              <form method="post" class="mb-4">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <textarea name="content" class="form-control" rows="3" placeholder="Nhập bình luận của bạn..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane me-1"></i>Gửi bình luận</button>
+              </form>
+            {% else %}
+              <div class="alert alert-info">Bạn cần <a href="{% url 'account_login' %}?next={{ request.path }}">đăng nhập</a> để bình luận.</div>
+            {% endif %}
+            <div class="comment-list mt-3">
+              {% if comments %}
+                {% for comment in comments %}
+                  {% if not comment.parent %}
+                  <div class="border-bottom pb-3 mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                      <div class="fw-bold me-2">{{ comment.user.get_full_name|default:comment.user.username }}</div>
+                      <span class="text-muted small">{{ comment.created|date:'d/m/Y H:i' }}</span>
+                    </div>
+                    <div class="mb-2">{{ comment.content|linebreaks }}</div>
+                    {% if user.is_staff %}
+                      <a href="#reply-form-{{ comment.id }}" class="btn btn-link btn-sm text-primary" data-bs-toggle="collapse" data-bs-target="#reply-form-{{ comment.id }}">Trả lời</a>
+                    {% endif %}
+                    {% for reply in comment.replies.all %}
+                      {% if reply.is_admin_reply %}
+                        <div class="card mt-2 ms-4 bg-light border-primary">
+                          <div class="card-body py-2">
+                            <div class="fw-bold text-primary mb-1">Admin</div>
+                            <div class="mb-1">{{ reply.content|linebreaks }}</div>
+                            <span class="text-muted small">{{ reply.created|date:'d/m/Y H:i' }}</span>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                    {% if user.is_staff %}
+                    <div class="collapse mt-2" id="reply-form-{{ comment.id }}">
+                      <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                        <input type="hidden" name="is_admin_reply" value="1">
+                        <div class="mb-2">
+                          <textarea name="content" class="form-control" rows="2" placeholder="Trả lời bình luận này..." required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-reply me-1"></i>Trả lời</button>
+                      </form>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                {% endfor %}
+              {% else %}
+                <div class="alert alert-secondary mb-0">Chưa có bình luận nào cho bài viết này.</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Bài viết liên quan -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Bài viết liên quan</h5>
+        </div>
+        <div class="card-body p-0">
+          {% if related_posts %}
+          <div class="list-group list-group-flush">
+            {% for rel_post in related_posts %}
+            <a href="{% url 'posts:post_detail' rel_post.slug %}" class="list-group-item list-group-item-action d-flex align-items-center">
+              {% if rel_post.image %}
+              <img src="{{ rel_post.image.url }}" alt="{{ rel_post.title }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+              {% endif %}
+              <div style="min-width:0;">
+                <h6 class="mb-1 text-truncate" style="max-width: 140px;">{{ rel_post.title }}</h6>
+                <small class="text-muted">{{ rel_post.created|date:'d/m/Y' }}</small>
+              </div>
+            </a>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="text-muted text-center mb-0">Không có bài viết liên quan.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<!-- Highlight.js for code block -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<script>
+function toggleReplyForm(commentId) {
+  var form = document.getElementById('reply-form-' + commentId);
+  if (form.classList.contains('d-none')) {
+    form.classList.remove('d-none');
+  } else {
+    form.classList.add('d-none');
+  }
+}
+
+document.getElementById('copyLinkBtn')?.addEventListener('click', function() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(function() {
+    const msg = document.getElementById('copyLinkMsg');
+    if (msg) {
+      msg.style.display = 'inline';
+      setTimeout(() => { msg.style.display = 'none'; }, 1800);
+    }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const content = document.querySelector('.post-content');
+  const toc = document.getElementById('toc');
+  if (!content || !toc) return;
+  const headings = content.querySelectorAll('h2, h3');
+  if (headings.length === 0) return;
+  let tocHtml = '<div class="toc-box"><div class="toc-title fw-bold mb-2"><i class="bi bi-list-ul me-1"></i>Mục lục bài viết</div><ul class="toc-list">';
+  headings.forEach((el, idx) => {
+    if (!el.id) {
+      el.id = 'toc-h' + idx;
+    }
+    const tag = el.tagName.toLowerCase();
+    tocHtml += `<li class="toc-item toc-${tag}"><a href="#${el.id}">${el.textContent}</a></li>`;
+  });
+  tocHtml += '</ul></div>';
+  toc.innerHTML = tocHtml;
+  // Cuộn mượt khi click
+  toc.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.getElementById(this.getAttribute('href').slice(1));
+      if (target) {
+        window.scrollTo({top: target.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth'});
+      }
+    });
+  });
+});
+
+// Copy code button
+document.querySelectorAll('.btn-copy-code').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const code = btn.parentElement.querySelector('code');
+    if (code) {
+      const text = code.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btn.innerHTML = '<i class="bi bi-clipboard-check"></i>';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="bi bi-clipboard"></i>';
+        }, 1200);
+      });
+    }
+  });
+});
+</script>
+{% endblock %} 

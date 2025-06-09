@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Xác nhận đăng ký Google - Camera HCM{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Đăng ký Google</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:430px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4 text-center">
+            <h2 class="mb-4"><i class="bi bi-google me-2 text-danger"></i>Đăng ký bằng Google</h2>
+            <p class="mb-4">Bạn sắp đăng ký tài khoản bằng Google.<br>Nhấn <b>Đăng ký</b> để hoàn tất.</p>
+            <form method="post" id="google-signup-form">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="mb-3">
+                    <label class="form-label" for="id_{{ field.name }}">{{ field.label }}</label>
+                    <div class="input-group">
+                        {% if field.name == 'email' %}
+                        <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                        {% endif %}
+                        {{ field }}
+                    </div>
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1">{{ field.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <button type="submit" class="btn btn-danger w-100 py-2" style="font-weight:600;">
+                    <i class="bi bi-google me-2"></i>Đăng ký
+                </button>
+            </form>
+            <div class="text-center mt-4">
+                <a href="/accounts/login/" class="text-decoration-none">Quay lại đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// Tự động submit nếu chỉ có trường email và đã có giá trị
+window.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('google-signup-form');
+    if (form) {
+        var emailInput = form.querySelector('input[name="email"]');
+        if (emailInput && emailInput.value && form.querySelectorAll('input').length === 2) {
+            form.submit();
+        }
+    }
+});
+</script>
+{% endblock %} 

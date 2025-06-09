@@ -1,0 +1,41 @@
+<div class="row g-4">
+  <div class="col-md-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-house-door me-2 text-primary"></i>Trang chính</h6>
+    <ul class="list-unstyled ms-2">
+      <li><a href="/" class="text-decoration-none"><i class="bi bi-house me-1"></i>Trang chủ</a></li>
+      <li><a href="/contact/" class="text-decoration-none"><i class="bi bi-envelope me-1"></i>Liên hệ</a></li>
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-grid-3x3-gap me-2 text-success"></i>Danh mục sản phẩm</h6>
+    <ul class="list-unstyled ms-2">
+      {% for cat in product_categories %}
+      <li><a href="{{ cat.get_absolute_url }}" class="text-decoration-none"><i class="bi bi-box-seam me-1"></i>{{ cat.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-boxes me-2 text-danger"></i>Sản phẩm nổi bật</h6>
+    <ul class="list-unstyled ms-2">
+      {% for product in featured_products %}
+      <li><a href="{{ product.get_absolute_url }}" class="text-decoration-none"><i class="bi bi-caret-right-fill me-1"></i>{{ product.name }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-newspaper me-2 text-info"></i>Tin tức</h6>
+    <ul class="list-unstyled ms-2">
+      {% for post in latest_posts %}
+      <li><a href="{{ post.get_absolute_url }}" class="text-decoration-none"><i class="bi bi-caret-right-fill me-1"></i>{{ post.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div class="col-md-4">
+    <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-text me-2 text-secondary"></i>Trang đơn</h6>
+    <ul class="list-unstyled ms-2">
+      {% for page in single_pages %}
+      <li><a href="{{ page.get_absolute_url }}" class="text-decoration-none"><i class="bi bi-caret-right-fill me-1"></i>{{ page.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+</div> 

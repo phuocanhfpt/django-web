@@ -1,0 +1,12 @@
+<div class="card pricing-card mb-4 shadow-sm border-0">
+  <div class="card-body text-center">
+    <h4 class="card-title mb-2">{{ title }}</h4>
+    <div class="display-6 fw-bold text-primary mb-3">{{ price }}</div>
+    <ul class="list-unstyled mb-3">
+      {% for feature in features %}
+      <li class="mb-1"><i class="fa fa-check-circle text-success me-2"></i>{{ feature }}</li>
+      {% endfor %}
+    </ul>
+    <div class="mb-2">{{ content|safe }}</div>
+  </div>
+</div> 

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Đăng nhập bằng Google - Camera HCM{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Đăng nhập Google</li>
+  </ol>
+</nav>
+{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:430px;">
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4 text-center">
+            <h2 class="mb-4"><i class="bi bi-google me-2 text-danger"></i>Đăng nhập bằng Google</h2>
+            <p class="mb-4">Bạn sắp đăng nhập bằng tài khoản Google.<br>Nhấn <b>Tiếp tục</b> để xác nhận.</p>
+            <form method="post" action="">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger w-100 py-2" style="font-weight:600;">
+                    <i class="bi bi-google me-2"></i>Tiếp tục với Google
+                </button>
+            </form>
+            <div class="text-center mt-4">
+                <a href="/accounts/login/" class="text-decoration-none">Quay lại đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>Quản lý Đăng ký Tư vấn Khách Hàng</h3>
+  <form method="get" class="row g-3 mb-3 align-items-end">
+    <div class="col-auto">
+      <select name="status" class="form-select">
+        <option value="">-- Tất cả trạng thái --</option>
+        <option value="pending" {% if status == 'pending' %}selected{% endif %}>Chờ xử lý</option>
+        <option value="processing" {% if status == 'processing' %}selected{% endif %}>Đang xử lý</option>
+        <option value="completed" {% if status == 'completed' %}selected{% endif %}>Hoàn thành</option>
+        <option value="cancelled" {% if status == 'cancelled' %}selected{% endif %}>Đã hủy</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <input type="text" name="q" class="form-control" placeholder="Tìm kiếm tên, SĐT, nội dung..." value="{{ q }}">
+    </div>
+    <div class="col-auto">
+      <button type="submit" class="btn btn-outline-primary">Lọc</button>
+    </div>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Họ tên</th>
+          <th>Điện thoại</th>
+          <th class="d-none d-md-table-cell">Địa chỉ</th>
+          <th class="d-none d-md-table-cell">Nội dung</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in consultations %}
+        <tr>
+          <td>{{ c.id }}</td>
+          <td>{{ c.full_name }}</td>
+          <td>{{ c.phone }}</td>
+          <td class="d-none d-md-table-cell">{{ c.address }}</td>
+          <td class="d-none d-md-table-cell" style="max-width:220px;white-space:pre-line;overflow:hidden;text-overflow:ellipsis;">{{ c.content|truncatechars:60 }}</td>
+          <td>
+            {% if c.status == 'pending' %}
+              <span class="badge bg-warning text-dark">Chờ xử lý</span>
+            {% elif c.status == 'processing' %}
+              <span class="badge bg-info text-dark">Đang xử lý</span>
+            {% elif c.status == 'completed' %}
+              <span class="badge bg-success">Hoàn thành</span>
+            {% elif c.status == 'cancelled' %}
+              <span class="badge bg-secondary">Đã hủy</span>
+            {% endif %}
+          </td>
+          <td>{{ c.created_at|date:'d/m/Y H:i' }}</td>
+          <td><a href="/consultations/admin/{{ c.id }}/" class="btn btn-sm btn-primary px-3 py-2" style="font-size:1rem;">Xem</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if page_obj.has_other_pages %}
+  <nav>
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?{% if status %}status={{ status }}&{% endif %}{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?{% if status %}status={{ status }}&{% endif %}{% if q %}q={{ q|urlencode }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?{% if status %}status={{ status }}&{% endif %}{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">&raquo;</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+</div>
+{% endblock %} 

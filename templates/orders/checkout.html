@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load vnd_filters %}
+
+{% block title %}Đặt hàng - Shop Online{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="/cart/" class="text-primary text-decoration-none">Giỏ hàng</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Đặt hàng</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Thông tin đặt hàng</h4>
+        </div>
+        <div class="card-body">
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% if message %}
+            <div class="alert alert-{{ message.success|yesno:'success,danger' }} alert-dismissible fade show" role="alert">
+              {{ message.msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endif %}
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="mb-3">
+              <label for="full_name" class="form-label">Họ và tên</label>
+              <input type="text" class="form-control" id="full_name" name="full_name" required value="{{ user_info.full_name|default:'' }}">
+              <div class="invalid-feedback">Vui lòng nhập họ và tên</div>
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input type="email" class="form-control" id="email" name="email" required value="{{ user_info.email|default:'' }}">
+              <div class="invalid-feedback">Vui lòng nhập email hợp lệ</div>
+            </div>
+            <div class="mb-3">
+              <label for="phone" class="form-label">Số điện thoại</label>
+              <input type="tel" class="form-control" id="phone" name="phone" required value="{{ user_info.phone|default:'' }}">
+              <div class="invalid-feedback">Vui lòng nhập số điện thoại</div>
+            </div>
+            <div class="mb-3">
+              <label for="address" class="form-label">Địa chỉ</label>
+              <textarea class="form-control" id="address" name="address" rows="3" required>{{ user_info.address|default:'' }}</textarea>
+              <div class="invalid-feedback">Vui lòng nhập địa chỉ</div>
+            </div>
+            <div class="mb-3">
+              <label for="city" class="form-label">Thành phố</label>
+              <input type="text" class="form-control" id="city" name="city" required value="{{ user_info.city|default:'' }}">
+              <div class="invalid-feedback">Vui lòng nhập thành phố</div>
+            </div>
+            <div class="mb-3">
+              <label for="note" class="form-label">Ghi chú</label>
+              <textarea class="form-control" id="note" name="note" rows="3"></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Phương thức thanh toán</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_method" id="payment_cod" value="cod" checked>
+                <label class="form-check-label" for="payment_cod">
+                  <i class="fa fa-money-bill-wave me-1 text-success"></i> Thanh toán khi nhận hàng (COD)
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_method" id="payment_bank" value="bank">
+                <label class="form-check-label" for="payment_bank">
+                  <i class="fa fa-university me-1 text-primary"></i> Chuyển khoản ngân hàng
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="payment_method" id="payment_momo" value="momo">
+                <label class="form-check-label" for="payment_momo">
+                  <img src="https://upload.wikimedia.org/wikipedia/vi/f/fe/MoMo_Logo.png" alt="MoMo" style="height:1.2em;vertical-align:middle;"> Ví MoMo
+                </label>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Đặt hàng</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Đơn hàng của bạn</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush mb-3">
+            {% for item in cart.items.all %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-0">{{ item.product.name }}</h6>
+                <small class="text-muted">{{ item.quantity }} x {{ item.product.price|vndcomma }}đ</small>
+              </div>
+              <span>{{ item.get_cost|vndcomma }}đ</span>
+            </li>
+            {% endfor %}
+          </ul>
+          {% if cart.promotion %}
+          <div class="mb-2 d-flex justify-content-between align-items-center">
+            <span class="text-success">Mã giảm giá: <strong>{{ cart.promotion.code }}</strong></span>
+            <span class="text-success">-{{ cart.get_discount|vndcomma }}đ</span>
+          </div>
+          {% endif %}
+          <hr>
+          <div class="d-flex justify-content-between">
+            <h5>Tổng cộng:</h5>
+            <h5 id="total-cost">{{ cart.get_total_cost_after_discount|vndcomma }}đ</h5>
+          </div>
+        </div>
+      </div>
+      <div class="card shadow-sm mt-3">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Mã giảm giá</h5>
+        </div>
+        <div class="card-body">
+          <form id="coupon-form" method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            <div class="input-group">
+              <input type="text" class="form-control" id="coupon_code" name="coupon_code" placeholder="Nhập mã giảm giá" required>
+              <button type="submit" name="apply_coupon" value="1" class="btn btn-outline-primary">Áp dụng</button>
+            </div>
+            <div class="invalid-feedback">Vui lòng nhập mã giảm giá</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form validation
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+// Coupon form submission
+document.getElementById('coupon-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    var formData = new FormData(this);
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('total-cost').textContent = data.total_cost;
+            alert('Mã giảm giá đã được áp dụng!');
+        } else {
+            alert(data.error || 'Có lỗi xảy ra khi áp dụng mã giảm giá.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi áp dụng mã giảm giá.');
+    });
+});
+</script>
+{% endblock %} 

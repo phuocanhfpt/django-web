@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if tag %}
+        "Tag: {{ tag.name }} - Blog | {{ site_settings.site_name }}"
+    {% elif category %}
+        {{ category.meta_title|default:category.name|default:"Tin tức" }} - Blog | {{ site_settings.site_name }}
+    {% else %}
+        Tin tức - Blog | {{ site_settings.site_name }}
+    {% endif %}
+{% endblock %}
+
+{% block meta_description %}
+    {% if tag %}
+        "Các bài viết với tag '{{ tag.name }}' về camera, an ninh, công nghệ, ..."
+    {% elif category %}
+        {{ category.meta_description|default:"Tin tức, bài viết về camera giám sát, thiết bị an ninh và giải pháp bảo mật. Cập nhật thông tin mới nhất về công nghệ camera và an ninh." }}
+    {% else %}
+        Tin tức, bài viết về camera giám sát, thiết bị an ninh và giải pháp bảo mật. Cập nhật thông tin mới nhất về công nghệ camera và an ninh.
+    {% endif %}
+{% endblock %}
+
+{% block meta_keywords %}
+    {% if category %}
+        {{ category.name|default:"Tin tức" }}, blog, tin tức, camera, an ninh, thiết bị, camera giám sát, camera an ninh, thiết bị bảo mật
+    {% else %}
+        Tin tức, blog, tin tức, camera, an ninh, thiết bị, camera giám sát, camera an ninh, thiết bị bảo mật
+    {% endif %}
+{% endblock %}
+
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+
+{% block meta_og %}
+    {% if category %}
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="{{ category.meta_title|default:category.name|default:'Tin tức' }} - Blog | {{ site_settings.site_name }}">
+        <meta property="og:description" content="{{ category.meta_description|default:'Tin tức, bài viết về camera giám sát, thiết bị an ninh và giải pháp bảo mật. Cập nhật thông tin mới nhất về công nghệ camera và an ninh.' }}">
+    {% else %}
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="Tin tức - Blog | {{ site_settings.site_name }}">
+        <meta property="og:description" content="Tin tức, bài viết về camera giám sát, thiết bị an ninh và giải pháp bảo mật. Cập nhật thông tin mới nhất về công nghệ camera và an ninh.">
+    {% endif %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:site_name" content="{{ site_settings.site_name }}">
+{% endblock %}
+
+{% block meta_twitter %}
+    {% if category %}
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="{{ category.meta_title|default:category.name|default:'Tin tức' }} - Blog | {{ site_settings.site_name }}">
+        <meta name="twitter:description" content="{{ category.meta_description|default:'Tin tức, bài viết về camera giám sát, thiết bị an ninh và giải pháp bảo mật. Cập nhật thông tin mới nhất về công nghệ camera và an ninh.' }}">
+    {% else %}
+        <meta name="twitter:card" content="summary">
+        <meta name="twitter:title" content="Tin tức - Blog | {{ site_settings.site_name }}">
+        <meta name="twitter:description" content="Tin tức, bài viết về camera giám sát, thiết bị an ninh và giải pháp bảo mật. Cập nhật thông tin mới nhất về công nghệ camera và an ninh.">
+    {% endif %}
+{% endblock %}
+
+{% block extra_head %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+<!-- BreadcrumbList Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Trang chủ",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Blog",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/blog/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ category.name|default:'Tin tức' }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+
+<!-- ItemList Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": [
+    {% for post in posts %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "item": {
+        "@type": "Article",
+        "headline": "{{ post.meta_title|default:post.title|escapejs }}",
+        "description": "{{ post.meta_description|default:post.short_description|default:post.content|striptags|truncatechars:200|escapejs }}",
+        "image": "{% if post.image %}{{ post.image.url }}{% endif %}",
+        "datePublished": "{{ post.created|date:'c' }}",
+        "dateModified": "{{ post.updated|date:'c' }}",
+        "author": {
+          "@type": "Person",
+          "name": "{{ post.author.get_full_name|default:post.author.username|escapejs }}"
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "{{ site_settings.site_name|escapejs }}",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{% static 'img/logo.png' %}"
+          }
+        },
+        "url": "{{ request.scheme }}://{{ request.get_host }}{{ post.get_absolute_url }}",
+        "keywords": "{{ post.get_tags_list|join:', '|escapejs }}",
+        "articleSection": "{{ post.category.name|default:'Tin tức'|escapejs }}",
+        "about": [
+          {% for tag in post.tags.all %}
+          {
+            "@type": "Thing",
+            "name": "{{ tag.name|escapejs }}"
+          }{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{{ block.super }}
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-2">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    {% if tag %}
+      <li class="breadcrumb-item"><a href="/posts/" class="text-primary text-decoration-none">Tin tức</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Tag: {{ tag.name }}</li>
+    {% elif category %}
+      <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+    {% else %}
+    <li class="breadcrumb-item active" aria-current="page">Tin tức</li>
+    {% endif %}
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Sidebar Categories -->
+        <div class="col-lg-3 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Danh mục tin tức</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'posts:post_list' %}" class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
+                            <i class="fas fa-newspaper me-2"></i>Tất cả tin tức
+                        </a>
+                        {% for cat in categories %}
+                        <a href="{% url 'posts:post_list_by_category' cat.slug %}" class="list-group-item list-group-item-action {% if category and category.slug == cat.slug %}active{% endif %}">
+                            <i class="fas fa-folder me-2"></i>{{ cat.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Posts -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Bài viết mới nhất</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for post in recent_posts %}
+                        <a href="{% url 'posts:post_detail' post.slug %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex align-items-center">
+                                {% if post.image %}
+                                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                {% endif %}
+                                <div style="min-width:0;">
+                                    <h6 class="mb-1 text-truncate" style="max-width: 140px;">{{ post.title }}</h6>
+                                    <small class="text-muted">{{ post.created|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <!-- Category/Tag Title -->
+            {% if tag %}
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h1 class="h3 mb-2">Tag: {{ tag.name }}</h1>
+                <a href="{% url 'posts:post_list' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Xem tất cả
+                </a>
+              </div>
+            {% elif category %}
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h1 class="h3 mb-2">{{ category.name }}</h1>
+                <a href="{% url 'posts:post_list' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-arrow-left me-1"></i>Xem tất cả
+                </a>
+            </div>
+            {% else %}
+            <h1 class="h3 mb-2">Tin tức mới nhất</h1>
+            {% endif %}
+
+            <!-- Posts Grid -->
+            <div class="row" id="posts-list">
+                {% for post in posts %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        {% if post.image %}
+                        <img src="{{ post.image.url }}" class="card-img-top" alt="{{ post.title }}" style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="text-muted">{{ post.created|date:"d/m/Y" }}</small>
+                                {% if post.category %}
+                                <a href="{% url 'posts:post_list_by_category' post.category.slug %}" class="badge bg-primary text-decoration-none">
+                                    {{ post.category.name|default:'Tin tức' }}
+                                </a>
+                                {% endif %}
+                            </div>
+                            <h5 class="card-title">
+                                <a href="{% url 'posts:post_detail' post.slug %}" class="text-decoration-none text-dark">
+                                    {{ post.title }}
+                                    <span class="ms-2 text-muted small"><i class="fas fa-comments"></i> {{ post.comments_count }}</span>
+                                </a>
+                            </h5>
+                            <p class="card-text text-muted">{{ post.excerpt|truncatewords:20 }}</p>
+                            {% if post.tags.all %}
+                            <div class="post-tags">
+                                {% for tag in post.tags.all %}
+                                <a href="{% url 'posts:tag_list' tag.slug %}" class="badge bg-secondary text-decoration-none">
+                                    <i class="fas fa-tag me-1"></i>{{ tag.name }}
+                                </a>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white border-top-0">
+                            <a href="{% url 'posts:post_detail' post.slug %}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-arrow-right me-1"></i>Đọc tiếp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Chưa có bài viết nào trong danh mục này.
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Nút Hiển thị thêm -->
+            {% if posts.has_next %}
+            <div class="text-center mt-4">
+                <button id="load-more-btn" class="load-more-btn">
+                    Hiển thị thêm <i class="bi bi-chevron-down ms-2"></i>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.card, .shadow-sm {
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(13,110,253,0.08);
+  border: none;
+  margin-bottom: 1.5rem;
+}
+.card-title, h1, h3, h5 {
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-weight: 700;
+  color: #1769aa;
+  margin-top: 0.5em;
+  margin-bottom: 0.6em;
+  line-height: 1.22;
+  letter-spacing: 0.01em;
+}
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.card-img-top {
+  border-radius: 14px 14px 0 0;
+  object-fit: cover;
+}
+.card-footer {
+  background: #fff;
+  border-top: none;
+  border-radius: 0 0 14px 14px;
+}
+.btn-outline-primary, .btn-primary, .btn {
+  border-radius: 16px !important;
+  font-size: 0.97rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em;
+  box-shadow: none !important;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.btn-outline-primary:hover, .btn-primary:hover {
+  background: #1769aa !important;
+  color: #fff !important;
+}
+.badge.bg-primary {
+  background: #2196f3 !important;
+  color: #fff !important;
+  font-weight: 600;
+  border-radius: 12px;
+  font-size: 0.97rem;
+}
+.breadcrumb {
+  font-size: 1.01rem;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(13,110,253,0.06);
+}
+@media (max-width: 575.98px) {
+  .card-title, h1, h3, h5 {
+    font-size: 1.01rem;
+  }
+  .card-img-top {
+    height: 120px !important;
+  }
+}
+h1, h2, h3, h4, h5 {
+  color: #1769aa !important;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = parseInt('{{ posts.number|default:1 }}');
+const hasNextPage = '{{ posts.has_next|yesno:"true,false" }}' === 'true';
+const loadMoreBtn = document.getElementById('load-more-btn');
+const postsListEl = document.getElementById('posts-list');
+
+if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+        currentPage += 1;
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang tải...';
+        fetch(window.location.pathname + '?page=' + currentPage, {
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(response => response.text())
+        .then(html => {
+            // Tìm phần tử mới trong response
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            const newPosts = tempDiv.querySelectorAll('#posts-list .col-md-6, #posts-list .col-lg-4');
+            newPosts.forEach(el => postsListEl.appendChild(el));
+            // Kiểm tra còn trang không
+            const hasNextNew = tempDiv.querySelector('#load-more-btn');
+            if (!hasNextNew) {
+                loadMoreBtn.remove();
+            } else {
+                loadMoreBtn.disabled = false;
+                loadMoreBtn.innerHTML = 'Hiển thị thêm <i class="bi bi-chevron-down ms-2"></i>';
+            }
+        });
+    });
+}
+</script>
+{% endblock %} 

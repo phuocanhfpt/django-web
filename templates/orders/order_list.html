@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Đơn hàng của tôi - Shop Online{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-primary text-decoration-none">Trang cá nhân</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Đơn hàng của tôi</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<script>window.location.href = '{% url 'accounts:order_list' %}';</script>
+{% endblock %} 

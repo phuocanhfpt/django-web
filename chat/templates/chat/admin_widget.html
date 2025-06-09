@@ -1,0 +1,78 @@
+<div id="admin-chat-popup" class="card shadow" style="display:none;min-width:320px;max-width:350px;position:fixed;top:80px;right:32px;z-index:10000;">
+  <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+    <span><i class="bi bi-chat-dots me-2"></i>Chat với khách</span>
+    <button type="button" class="btn-close btn-close-white" id="close-admin-chat-btn"></button>
+  </div>
+  <div class="card-body" style="height:320px;overflow-y:auto;" id="admin-chat-messages"></div>
+  <div class="card-footer">
+    <form id="admin-chat-form" class="d-flex gap-2">
+      <input type="text" id="admin-chat-input" class="form-control" placeholder="Nhập tin nhắn..." autocomplete="off">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-send"></i></button>
+    </form>
+  </div>
+</div>
+<script>
+let adminConversationId = null;
+
+function openAdminChatPopup(conversationId) {
+  adminConversationId = conversationId;
+  document.getElementById('admin-chat-popup').style.display = 'block';
+  loadAdminMessages();
+}
+
+function closeAdminChatPopup() {
+  document.getElementById('admin-chat-popup').style.display = 'none';
+}
+
+function loadAdminMessages() {
+  if (!adminConversationId) return;
+  fetch(`/chat/api/messages/${adminConversationId}/`)
+    .then(res => res.json())
+    .then(data => {
+      const messages = document.getElementById('admin-chat-messages');
+      messages.innerHTML = '';
+      data.messages.forEach(msg => {
+        messages.innerHTML += `<div class='mb-2 ${msg.is_admin ? "text-end" : ""}'>
+          <span class='badge bg-${msg.is_admin ? "primary" : "secondary"}'>${msg.sender}</span>
+          <span class='ms-2'>${msg.content}</span>
+          <span class='text-muted small ms-2'>${msg.timestamp}</span>
+        </div>`;
+      });
+      messages.scrollTop = messages.scrollHeight;
+    });
+}
+
+// Polling mỗi 3 giây để lấy tin nhắn mới
+setInterval(function() {
+  if (document.getElementById('admin-chat-popup').style.display === 'block' && adminConversationId) {
+    loadAdminMessages();
+  }
+}, 3000);
+
+document.addEventListener('DOMContentLoaded', function() {
+  const closeBtn = document.getElementById('close-admin-chat-btn');
+  if (closeBtn) closeBtn.onclick = closeAdminChatPopup;
+  const chatForm = document.getElementById('admin-chat-form');
+  if (chatForm) {
+    chatForm.onsubmit = function(e) {
+      e.preventDefault();
+      const input = document.getElementById('admin-chat-input');
+      if (input.value.trim() && adminConversationId) {
+        const formData = new FormData();
+        formData.append('conversation_id', adminConversationId);
+        formData.append('content', input.value);
+        fetch('/chat/api/send/', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        })
+        .then(res => res.json())
+        .then(data => {
+          input.value = '';
+          loadAdminMessages();
+        });
+      }
+    };
+  }
+});
+</script> 

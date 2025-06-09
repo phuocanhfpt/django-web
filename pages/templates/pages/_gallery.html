@@ -1,0 +1,58 @@
+{% load static %}
+
+<div class="gallery-slider swiper">
+    <div class="swiper-wrapper">
+        {% for image in images %}
+        <div class="swiper-slide">
+            <img src="{{ image.url }}" alt="{{ image.alt|default:'' }}" class="img-fluid">
+            {% if image.caption %}
+            <div class="caption">{{ image.caption }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    <div class="swiper-pagination"></div>
+    <div class="swiper-button-prev"></div>
+    <div class="swiper-button-next"></div>
+</div>
+
+<style>
+.gallery-slider {
+    position: relative;
+    margin: 2rem 0;
+}
+.gallery-slider .swiper-slide {
+    text-align: center;
+}
+.gallery-slider img {
+    max-height: 500px;
+    object-fit: contain;
+}
+.gallery-slider .caption {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    new Swiper('.gallery-slider', {
+        slidesPerView: 1,
+        spaceBetween: 30,
+        loop: true,
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
+    });
+});
+</script> 

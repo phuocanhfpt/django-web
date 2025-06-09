@@ -1,0 +1,776 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load vnd_filters %}
+
+{% block title %}
+{% if category %}{{ category.meta_title|default:category.name }} - {{ site_settings.site_name }}
+{% elif products and products.0 %}{{ products.0.name }} - {{ site_settings.site_name }}
+{% else %}Sản phẩm - {{ site_settings.site_name }}{% endif %}
+{% endblock %}
+
+{% block meta_description %}
+{% if category %}{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}
+{% elif products and products.0 %}{{ products.0.short_description|default:products.0.description|striptags|truncatechars:160 }}
+{% else %}Khám phá các sản phẩm camera, thiết bị an ninh chính hãng, giá tốt tại {{ site_settings.site_name }}.{% endif %}
+{% endblock %}
+
+{% block meta_keywords %}
+{% if category %}{{ category.tags }}{% endif %}
+{% for product in products %}{% if product.tags %},{{ product.tags }}{% endif %}{% endfor %}
+, camera, sản phẩm, shop online, an ninh, thiết bị, camera giám sát, camera an ninh, thiết bị bảo mật
+{% endblock %}
+
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/nouislider.min.css' %}">
+<style>
+  .sidebar-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .sidebar-section h5 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+  }
+  .product-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .filter-badge {
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 5px;
+    display: inline-block;
+  }
+  .filter-badge.active {
+    background: #0d6efd;
+    color: white;
+  }
+  .product-image {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+  }
+  .product-title {
+    font-size: 1rem;
+    line-height: 1.4;
+    height: 2.8em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .category-menu .list-group-item {
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px !important;
+    margin-bottom: 5px;
+    color: #495057;
+    transition: all 0.2s;
+  }
+  .category-menu .list-group-item:hover {
+    background: #e9ecef;
+    color: #0d6efd;
+  }
+  .category-menu .list-group-item.active {
+    background: #0d6efd;
+    color: white;
+  }
+  .form-check {
+    margin-bottom: 8px;
+  }
+  .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+  .form-select {
+    border-radius: 5px;
+    border-color: #dee2e6;
+  }
+  .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+  }
+  .filter-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    margin-bottom: 20px;
+    padding: 0;
+    overflow: hidden;
+  }
+  .filter-card-header {
+    background: #f8f9fa;
+    padding: 18px 20px 12px 20px;
+    border-bottom: 1px solid #e9ecef;
+    font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .filter-section {
+    padding: 18px 20px 10px 20px;
+    border-bottom: 1px solid #e9ecef;
+  }
+  .filter-section:last-child {
+    border-bottom: none;
+  }
+  .filter-section h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    color: #222;
+  }
+  .card .brand-grid .brand-btn,
+  .brand-grid .brand-btn {
+    border: 2px solid #0d6efd !important;
+    background: #e3f2fd !important;
+    border-radius: 18px !important;
+    padding: 4px 12px !important;
+    font-size: 0.95rem !important;
+    color: #1769aa !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    margin-bottom: 6px !important;
+    margin-right: 6px !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 8px rgba(13,110,253,0.08) !important;
+    outline: none !important;
+    display: inline-block !important;
+    letter-spacing: 0.3px !important;
+  }
+  .card .brand-grid .brand-btn.active,
+  .brand-grid .brand-btn.active,
+  .card .brand-grid .brand-btn:active,
+  .brand-grid .brand-btn:active,
+  .card .brand-grid .brand-btn:focus,
+  .brand-grid .brand-btn:focus {
+    background: #0d6efd !important;
+    color: #fff !important;
+    border: 2px solid #0d6efd !important;
+    box-shadow: 0 4px 12px rgba(13,110,253,0.12) !important;
+  }
+  .card .brand-grid .brand-btn:hover,
+  .brand-grid .brand-btn:hover {
+    background: #1769aa !important;
+    color: #fff !important;
+    border: 2px solid #1769aa !important;
+  }
+  .see-more-link {
+    color: #0d6efd;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-top: 4px;
+    display: inline-block;
+  }
+  .feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+  .form-check-label {
+    font-size: 0.97rem;
+    color: #333;
+    margin-left: 6px;
+  }
+  .filter-section select.form-select {
+    width: 100%;
+    margin-top: 6px;
+    border-radius: 6px;
+  }
+  .filter-section .active-filters {
+    margin-top: 8px;
+  }
+  .filter-badge {
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 3px 3px 0 0;
+    display: inline-block;
+    font-size: 0.95rem;
+  }
+  .filter-badge.active {
+    background: #0d6efd;
+    color: white;
+  }
+  .btn-reset-filter {
+    width: 100%;
+    margin-top: 12px;
+    border-radius: 6px;
+    font-weight: 500;
+  }
+  @media (max-width: 768px) {
+    .sidebar-section {
+      margin-bottom: 15px;
+    }
+    .product-image {
+      height: 160px;
+    }
+  }
+  @media (max-width: 575.98px) {
+    #products-grid > .col-12 {
+      width: 50%;
+      max-width: 50%;
+      flex: 0 0 50%;
+      padding-left: 8px;
+      padding-right: 8px;
+    }
+    .product-card {
+      margin-bottom: 16px;
+    }
+    .btn-add-cart {
+      width: auto !important;
+      min-width: unset !important;
+      padding: 0.45em 0.7em !important;
+      font-size: 0.97rem !important;
+      border-radius: 16px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.4em !important;
+      box-shadow: none !important;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block extra_head %}
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Sản phẩm",
+        "item": "{{ request.build_absolute_uri }}"
+      }
+    ]
+  }
+  </script>
+{{ block.super }}
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="/products/" class="text-primary text-decoration-none">Sản phẩm</a></li>
+    {% if category %}
+      <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+    {% endif %}
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <!-- Card danh mục sản phẩm -->
+      <div class="card shadow-sm mb-4 category-menu">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fa fa-list me-2"></i>Danh mục sản phẩm</h5>
+        </div>
+        <div class="card-body p-0" style="max-height: 340px; overflow-y: auto;">
+          <div class="list-group list-group-flush">
+            <a href="{% url 'products:product_list' %}" class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
+              <i class="fa fa-th-large me-2"></i>Tất cả sản phẩm
+            </a>
+            {% for cat in product_categories %}
+            <a href="{{ cat.get_absolute_url }}" class="list-group-item list-group-item-action {% if category and category.slug == cat.slug %}active{% endif %}">
+              {% if cat.image %}
+                <img src="{{ cat.image.url }}" alt="{{ cat.name }}" style="width:22px;height:22px;object-fit:cover;border-radius:4px;margin-right:8px;">
+              {% else %}
+                <i class="fa fa-folder me-2 text-primary"></i>
+              {% endif %}
+              {{ cat.name }}
+              <span class="badge bg-primary rounded-pill float-end">{{ cat.product_count }}</span>
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- Card filter giá -->
+      <div class="card shadow-sm mb-4 filter-card">
+        <div class="card-header bg-primary text-white filter-card-header">
+          <i class="fa fa-money-bill-wave me-2"></i>Khoảng giá
+        </div>
+        <div class="card-body">
+          <div class="mb-2">
+            <input type="range" class="form-range" min="{{ price_min_default }}" max="{{ price_max_default }}" id="price_min" value="{{ price_min }}">
+            <input type="range" class="form-range" min="{{ price_min_default }}" max="{{ price_max_default }}" id="price_max" value="{{ price_max }}">
+          </div>
+          <div class="d-flex justify-content-between">
+            <span id="price-min-label">{{ price_min|default:price_min_default|vndcomma }}đ</span>
+            <span id="price-max-label">{{ price_max|default:price_max_default|vndcomma }}đ</span>
+          </div>
+        </div>
+      </div>
+      <!-- Card filter thương hiệu -->
+      <div class="card shadow-sm mb-4 filter-card">
+        <div class="card-header bg-primary text-white filter-card-header">
+          <i class="fa fa-tags me-2"></i>Thương hiệu
+        </div>
+        <div class="card-body">
+          <div class="brand-grid">
+            {% for brand in brands %}
+            <button type="button" class="brand-btn {% if brand.id|stringformat:'s' in selected_brands %}active{% endif %}" data-id="{{ brand.id }}">{{ brand.name }}</button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <!-- Card filter tính năng -->
+      <div class="card shadow-sm mb-4 filter-card">
+        <div class="card-header bg-primary text-white filter-card-header">
+          <i class="fa fa-cogs me-2"></i>Tính năng
+        </div>
+        <div class="card-body">
+          <div class="feature-list">
+            {% for feature in features %}
+            <div class="form-check">
+              <input class="form-check-input feature-filter" type="checkbox" 
+                     value="{{ feature.id }}" id="feature-{{ feature.id }}"
+                     {% if feature.id|stringformat:"s" in selected_features %}checked{% endif %}>
+              <label class="form-check-label" for="feature-{{ feature.id }}">
+                {% if feature.icon %}<i class="fa {{ feature.icon }} me-1"></i>{% endif %}{{ feature.name }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">
+          {% if category %}
+            {{ category.name }}
+          {% else %}
+            Tất cả sản phẩm
+          {% endif %}
+        </h4>
+        <div class="d-flex align-items-center">
+          <span class="me-2">Hiển thị:</span>
+          <select class="form-select form-select-sm" style="width: auto;" id="display-count">
+            <option value="12" {% if display_count == 12 %}selected{% endif %}>12</option>
+            <option value="24" {% if display_count == 24 %}selected{% endif %}>24</option>
+            <option value="36" {% if display_count == 36 %}selected{% endif %}>36</option>
+          </select>
+          <select class="form-select form-select-sm ms-2" style="width: auto;" id="sort-options">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Mới nhất</option>
+            <option value="price-asc" {% if sort == 'price-asc' %}selected{% endif %}>Giá tăng dần</option>
+            <option value="price-desc" {% if sort == 'price-desc' %}selected{% endif %}>Giá giảm dần</option>
+            <option value="name-asc" {% if sort == 'name-asc' %}selected{% endif %}>Tên A-Z</option>
+            <option value="name-desc" {% if sort == 'name-desc' %}selected{% endif %}>Tên Z-A</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      <div class="row g-4" id="products-grid">
+        {% for product in products %}
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card h-100 product-card shadow-sm border-0 rounded-4">
+            <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+              <div class="position-relative product-image-wrapper">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" class="card-img-top product-image rounded-top-4" alt="{{ product.name }}" loading="lazy">
+                {% else %}
+                <img src="{% static 'img/product_placeholder.png' %}" class="card-img-top product-image rounded-top-4" alt="{{ product.name }}" loading="lazy">
+                {% endif %}
+                {% if product.sale_price and product.sale_price < product.price %}
+                <span class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</span>
+                {% endif %}
+              </div>
+            </a>
+            <div class="card-body d-flex flex-column">
+              <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h3 class="card-title product-title mb-0">
+                    {{ product.name }}
+                    {% if product.comments_count %}
+                    <span class="ms-2 text-muted small"><i class="fas fa-comments"></i> {{ product.comments_count }}</span>
+                    {% endif %}
+                  </h3>
+                </div>
+              </a>
+              <div class="mb-2">
+                {% if product.sale_price and product.sale_price < product.price %}
+                <span class="text-muted text-decoration-line-through me-2">{{ product.price|vndcomma }} đ</span>
+                <span class="fw-bold text-danger">{{ product.sale_price|vndcomma }} đ</span>
+                {% else %}
+                <span class="fw-bold text-primary">{{ product.price|vndcomma }} đ</span>
+                {% endif %}
+              </div>
+              <div class="mt-auto product-actions">
+                <form method="post" action="{% url 'cart:cart_add' product.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn btn-add-cart" title="Thêm vào giỏ hàng">
+                    <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <p class="text-center">Không có sản phẩm nào.</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Load More Button -->
+      {% if products.has_next %}
+      <div class="text-center mt-4">
+        <button class="load-more-btn" id="load-more">
+          Hiển thị thêm <i class="bi bi-chevron-down ms-2"></i>
+          <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if category.tags %}
+<div class="category-tags">
+  <h5 class="text-center mb-4">Từ khóa liên quan đến {{ category.name }}</h5>
+  <div class="text-center">
+    {% for tag in category.get_tags_list %}
+    <a href="?q={{ tag }}" class="category-tag" title="Tìm kiếm sản phẩm với từ khóa: {{ tag }}">
+      <i class="fas fa-tag me-1"></i>{{ tag }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Load more products
+  let currentPage = 1;
+  const loadMoreBtn = document.getElementById('load-more');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+      const spinner = this.querySelector('.spinner-border');
+      spinner.classList.remove('d-none');
+      this.disabled = true;
+
+      currentPage++;
+      const displayCount = document.getElementById('display-count').value;
+      
+      // Get current filter values
+      const filters = {
+        page: currentPage,
+        display_count: displayCount,
+        'brands[]': Array.from(document.querySelectorAll('.brand-btn.active')).map(btn => btn.getAttribute('data-id')),
+        'features[]': Array.from(document.querySelectorAll('.feature-filter:checked')).map(cb => cb.value),
+        sort: document.getElementById('sort-options').value
+      };
+
+      // Add category slug if exists
+      const categorySlug = '{{ category.slug|default:"" }}';
+      if (categorySlug) {
+        filters.category = categorySlug;
+      }
+
+      // Build URL based on whether we're in a category or not
+      let url = '/products/';
+      if (categorySlug) {
+        url += `category/${categorySlug}/`;
+      }
+
+      // Fetch more products
+      fetch(`${url}?${new URLSearchParams(filters)}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          if (data.error) {
+            throw new Error(data.error);
+          }
+          if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+            const productsGrid = document.getElementById('products-grid');
+            data.products.forEach(product => {
+              const productCard = createProductCard(product);
+              productsGrid.appendChild(productCard);
+            });
+
+            if (!data.has_next) {
+              loadMoreBtn.remove();
+            }
+          } else {
+            loadMoreBtn.remove();
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          loadMoreBtn.disabled = false;
+        })
+        .finally(() => {
+          spinner.classList.add('d-none');
+          loadMoreBtn.disabled = false;
+        });
+    });
+  }
+
+  // Filter change handlers
+  document.querySelectorAll('.brand-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.classList.toggle('active');
+      updateFilters();
+    });
+  });
+
+  document.querySelectorAll('.feature-filter').forEach(filter => {
+    filter.addEventListener('change', updateFilters);
+  });
+
+  const sortOptions = document.getElementById('sort-options');
+  if (sortOptions) {
+    sortOptions.addEventListener('change', updateFilters);
+  }
+
+  const displayCount = document.getElementById('display-count');
+  if (displayCount) {
+    displayCount.addEventListener('change', updateFilters);
+  }
+
+  const resetFilters = document.getElementById('reset-filters');
+  if (resetFilters) {
+    resetFilters.addEventListener('click', function() {
+      document.querySelectorAll('.brand-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.feature-filter').forEach(cb => cb.checked = false);
+      if (sortOptions) sortOptions.value = 'newest';
+      if (displayCount) displayCount.value = '12';
+      updateFilters();
+    });
+  }
+
+  // Update filters and refresh products
+  function updateFilters() {
+    currentPage = 1;
+    const productsGrid = document.getElementById('products-grid');
+    productsGrid.innerHTML = '';
+
+    const filters = {
+      page: currentPage,
+      display_count: document.getElementById('display-count').value,
+      'brands[]': Array.from(document.querySelectorAll('.brand-btn.active')).map(btn => btn.getAttribute('data-id')),
+      'features[]': Array.from(document.querySelectorAll('.feature-filter:checked')).map(cb => cb.value),
+      sort: document.getElementById('sort-options').value
+    };
+
+    // Add category slug if exists
+    const categorySlug = '{{ category.slug|default:"" }}';
+    if (categorySlug) {
+      filters.category = categorySlug;
+    }
+
+    // Update active filters display
+    updateActiveFilters(filters);
+
+    // Build URL based on whether we're in a category or not
+    let url = '/products/';
+    if (categorySlug) {
+      url += `category/${categorySlug}/`;
+    }
+
+    // Show loading state
+    productsGrid.innerHTML = '<div class="col-12"><p class="text-center">Đang tải sản phẩm...</p></div>';
+
+    // Fetch filtered products
+    fetch(`${url}?${new URLSearchParams(filters)}`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        productsGrid.innerHTML = '';
+        if (data.error) {
+          throw new Error(data.error);
+        }
+        if (data.products && Array.isArray(data.products) && data.products.length > 0) {
+          data.products.forEach(product => {
+            const productCard = createProductCard(product);
+            productsGrid.appendChild(productCard);
+          });
+
+          if (data.has_next) {
+            if (!document.getElementById('load-more')) {
+              const loadMoreBtn = document.createElement('button');
+              loadMoreBtn.id = 'load-more';
+              loadMoreBtn.className = 'btn btn-primary load-more-btn';
+              loadMoreBtn.innerHTML = 'Hiển thị thêm <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>';
+              productsGrid.parentNode.appendChild(loadMoreBtn);
+            }
+          } else {
+            const loadMoreBtn = document.getElementById('load-more');
+            if (loadMoreBtn) loadMoreBtn.remove();
+          }
+        } else {
+          productsGrid.innerHTML = '<div class="col-12"><p class="text-center">Không có sản phẩm nào.</p></div>';
+          const loadMoreBtn = document.getElementById('load-more');
+          if (loadMoreBtn) loadMoreBtn.remove();
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        productsGrid.innerHTML = `<div class="col-12"><p class="text-center text-danger">Có lỗi xảy ra: ${error.message}</p></div>`;
+      });
+  }
+
+  // Create product card element
+  function createProductCard(product) {
+    const col = document.createElement('div');
+    col.className = 'col-12 col-md-6 col-lg-4';
+    col.innerHTML = `
+      <div class="card h-100 product-card shadow-sm border-0 rounded-4">
+        <a href="${product.url}" class="text-decoration-none">
+          <div class="position-relative product-image-wrapper">
+            <img src="${product.image || '/static/img/product_placeholder.png'}" class="card-img-top product-image rounded-top-4" alt="${product.name}">
+            ${product.sale_price && product.sale_price < product.price ? 
+              '<span class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</span>' : ''}
+          </div>
+        </a>
+        <div class="card-body d-flex flex-column">
+          <a href="${product.url}" class="text-decoration-none">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h5 class="card-title product-title mb-0">
+                ${product.name}
+                ${product.comments_count ? '<span class="ms-2 text-muted small"><i class="fas fa-comments"></i> ${product.comments_count}</span>' : ''}
+              </h5>
+            </div>
+          </a>
+          <div class="mb-2">
+            ${product.sale_price && product.sale_price < product.price ?
+              `<span class="text-muted text-decoration-line-through me-2">${product.price.toLocaleString('vi-VN')}đ</span>
+               <span class="fw-bold text-danger">${product.sale_price.toLocaleString('vi-VN')}đ</span>` :
+              `<span class="fw-bold text-primary">${product.price.toLocaleString('vi-VN')}đ</span>`
+            }
+          </div>
+          <div class="mt-auto product-actions">
+            <form method="post" action="/cart/add/${product.id}/" class="d-inline">
+              <input type="hidden" name="csrfmiddlewaretoken" value="${getCookie('csrftoken')}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn btn-add-cart" title="Thêm vào giỏ hàng">
+                <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+    return col;
+  }
+
+  // Update active filters display
+  function updateActiveFilters(filters) {
+    const activeFiltersList = document.getElementById('active-filters-list');
+    if (!activeFiltersList) return;
+    
+    activeFiltersList.innerHTML = '';
+
+    if (filters['brands[]'] && Array.isArray(filters['brands[]'])) {
+      filters['brands[]'].forEach(brandId => {
+        const brandBtn = document.querySelector(`#brand-${brandId}`);
+        if (brandBtn) {
+          const brandName = brandBtn.textContent;
+          const brandFilter = document.createElement('div');
+          brandFilter.className = 'filter-badge active';
+          brandFilter.textContent = brandName;
+          activeFiltersList.appendChild(brandFilter);
+        }
+      });
+    }
+
+    if (filters['features[]'] && Array.isArray(filters['features[]'])) {
+      filters['features[]'].forEach(featureId => {
+        const featureLabel = document.querySelector(`#feature-${featureId}`).nextElementSibling;
+        if (featureLabel) {
+          const featureFilter = document.createElement('div');
+          featureFilter.className = 'filter-badge active';
+          featureFilter.innerHTML = featureLabel.innerHTML;
+          activeFiltersList.appendChild(featureFilter);
+        }
+      });
+    }
+
+    if (filters.sort && filters.sort !== 'newest') {
+      const sortSelect = document.querySelector(`#sort-options option[value="${filters.sort}"]`);
+      if (sortSelect) {
+        const sortFilter = document.createElement('div');
+        sortFilter.className = 'filter-badge active';
+        sortFilter.textContent = `Sắp xếp: ${sortSelect.textContent}`;
+        activeFiltersList.appendChild(sortFilter);
+      }
+    }
+  }
+
+  // Helper function to get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+{% endblock %} 

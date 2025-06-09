@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4">
+  <h3>Quản lý Chat Khách Hàng</h3>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Khách/User</th>
+          <th class="d-none d-md-table-cell">Bắt đầu</th>
+          <th class="d-none d-md-table-cell">Hoạt động cuối</th>
+        <th>Trạng thái</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for conv in conversations %}
+      <tr>
+        <td>{{ conv.id }}</td>
+        <td>
+          {% if conv.user %}
+            {{ conv.user.username }}
+          {% else %}
+            {{ conv.guest_name }}
+          {% endif %}
+        </td>
+          <td class="d-none d-md-table-cell">{{ conv.created|date:'d/m/Y H:i' }}</td>
+          <td class="d-none d-md-table-cell">{{ conv.last_active|date:'d/m/Y H:i' }}</td>
+        <td>
+          {% if conv.is_closed %}
+            <span class="badge bg-secondary">Đã đóng</span>
+          {% else %}
+            <span class="badge bg-success">Đang mở</span>
+          {% endif %}
+        </td>
+        <td>
+            <a href="{% url 'chat:admin_conversation_detail' conv.id %}" class="btn btn-sm btn-primary px-3 py-2" style="font-size:1rem;">Xem</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+</div>
+{% include 'chat/admin_widget.html' %}
+{% endblock %} 

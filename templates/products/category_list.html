@@ -1,0 +1,690 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ category.meta_title|default:category.name }} - {{ site_settings.site_name }}{% endblock %}
+
+{% block meta_description %}{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}{% endblock %}
+
+{% block meta_keywords %}{{ category.tags }}{% for product in products %}{% if product.tags %},{{ product.tags }}{% endif %}{% endfor %}, camera, {{ category.name }}, shop online, an ninh, thiết bị, camera giám sát, camera an ninh, thiết bị bảo mật{% endblock %}
+
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@14.6.3/distribute/nouislider.min.css">
+<style>
+  .filter-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .price-slider {
+    margin: 20px 0;
+  }
+  .product-card {
+    transition: transform 0.2s;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+  .load-more-btn {
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto;
+    display: block;
+  }
+  .noUi-connect {
+    background: #0d6efd;
+  }
+  .filter-badge {
+    background: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 15px;
+    margin: 5px;
+    display: inline-block;
+  }
+  .filter-badge.active {
+    background: #0d6efd;
+    color: white;
+  }
+  .product-image {
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+  }
+  .product-title {
+    font-size: 1rem;
+    line-height: 1.4;
+    height: 2.8em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .category-tags {
+    margin: 30px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 10px;
+  }
+  .category-tags h5 {
+    margin-bottom: 15px;
+    color: #495057;
+  }
+  .category-tag {
+    display: inline-block;
+    padding: 8px 15px;
+    margin: 5px;
+    background: #fff;
+    border-radius: 20px;
+    color: #495057;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    border: 1px solid #dee2e6;
+  }
+  .category-tag:hover {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+    transform: translateY(-2px);
+  }
+  @media (max-width: 768px) {
+    .filter-section {
+      margin-bottom: 15px;
+    }
+    .product-image {
+      height: 160px;
+    }
+    .category-tags {
+      margin: 20px 0;
+      padding: 15px;
+    }
+    .category-tag {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+{% if category %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="/products/" class="text-primary text-decoration-none">Sản phẩm</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+  </ol>
+</nav>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <!-- Filter Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <div class="filter-section">
+        <h5 class="mb-3">Bộ lọc sản phẩm</h5>
+        
+        <!-- Price Range Filter -->
+        <div class="mb-4">
+          <h6>Khoảng giá</h6>
+          <div id="price-slider" class="price-slider"></div>
+          <div class="d-flex justify-content-between mt-2">
+            <span id="price-min">0đ</span>
+            <span id="price-max">10.000.000đ</span>
+          </div>
+        </div>
+
+        <!-- Brand Filter -->
+        <div class="mb-4">
+          <h6>Thương hiệu</h6>
+          <div class="brand-filters">
+            {% for brand in brands %}
+            <div class="form-check">
+              <input class="form-check-input brand-filter" type="checkbox" 
+                     value="{{ brand.id }}" id="brand-{{ brand.id }}"
+                     {% if brand.id|stringformat:"s" in selected_brands %}checked{% endif %}>
+              <label class="form-check-label" for="brand-{{ brand.id }}">
+                {{ brand.name }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Features Filter -->
+        <div class="mb-4">
+          <h6>Tính năng</h6>
+          <div class="feature-filters">
+            {% for feature in features %}
+            <div class="form-check">
+              <input class="form-check-input feature-filter" type="checkbox" 
+                     value="{{ feature.id }}" id="feature-{{ feature.id }}"
+                     {% if feature.id|stringformat:"s" in selected_features %}checked{% endif %}>
+              <label class="form-check-label" for="feature-{{ feature.id }}">
+                {% if feature.icon %}<i class="fa {{ feature.icon }} me-1"></i>{% endif %}{{ feature.name }}
+              </label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Sort Options -->
+        <div class="mb-4">
+          <h6>Sắp xếp theo</h6>
+          <select class="form-select" id="sort-options">
+            <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Mới nhất</option>
+            <option value="price-asc" {% if sort == 'price-asc' %}selected{% endif %}>Giá tăng dần</option>
+            <option value="price-desc" {% if sort == 'price-desc' %}selected{% endif %}>Giá giảm dần</option>
+            <option value="name-asc" {% if sort == 'name-asc' %}selected{% endif %}>Tên A-Z</option>
+            <option value="name-desc" {% if sort == 'name-desc' %}selected{% endif %}>Tên Z-A</option>
+          </select>
+        </div>
+
+        <!-- Active Filters -->
+        <div id="active-filters" class="mb-4">
+          <h6>Bộ lọc đang áp dụng</h6>
+          <div id="active-filters-list"></div>
+        </div>
+
+        <button class="btn btn-outline-primary w-100" id="reset-filters">Xóa bộ lọc</button>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="col-lg-9">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">{{ category.name }}</h4>
+        <div class="d-flex align-items-center">
+          <span class="me-2">Hiển thị:</span>
+          <select class="form-select form-select-sm" style="width: auto;" id="display-count">
+            <option value="12" {% if display_count == 12 %}selected{% endif %}>12</option>
+            <option value="24" {% if display_count == 24 %}selected{% endif %}>24</option>
+            <option value="36" {% if display_count == 36 %}selected{% endif %}>36</option>
+          </select>
+        </div>
+      </div>
+
+      {% if category.description %}
+      <div class="category-description mb-4">
+        {{ category.description|safe }}
+      </div>
+      {% endif %}
+
+      {% if category.tags %}
+      <div class="category-tags">
+        {% for tag in category.get_tags_list %}
+        <a href="?q={{ tag }}" class="category-tag">{{ tag }}</a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Products Grid -->
+      <div class="row g-4" id="products-grid">
+        {% for product in products %}
+        <div class="col-6 col-md-4 col-lg-3">
+          <div class="card h-100 product-card">
+            <div class="position-relative">
+              {% if product.image %}
+              <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}" loading="lazy">
+              {% else %}
+              <img src="{% static 'img/product_placeholder.png' %}" class="card-img-top product-image" alt="{{ product.name }}" loading="lazy">
+              {% endif %}
+              {% if product.sale_price and product.sale_price < product.price %}
+              <span class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</span>
+              {% endif %}
+            </div>
+            <div class="card-body d-flex flex-column">
+              <h3 class="card-title product-title">{{ product.name }}</h3>
+              <div class="mb-2">
+                {% if product.sale_price and product.sale_price < product.price %}
+                <span class="text-muted text-decoration-line-through me-2">{{ product.price|floatformat:0 }}đ</span>
+                <span class="fw-bold text-danger">{{ product.sale_price|floatformat:0 }}đ</span>
+                {% else %}
+                <span class="fw-bold text-primary">{{ product.price|floatformat:0 }}đ</span>
+                {% endif %}
+              </div>
+              <div class="mt-auto product-actions">
+                <a href="{{ product.get_absolute_url }}" class="btn btn-outline-primary btn-sm" title="Xem chi tiết">
+                  <i class="fas fa-eye"></i> Xem chi tiết
+                </a>
+                <form method="post" action="{% url 'cart:cart_add' product.id %}" class="d-inline">
+                  {% csrf_token %}
+                  <input type="hidden" name="quantity" value="1">
+                  <button type="submit" class="btn btn-success btn-sm" title="Thêm vào giỏ hàng">
+                    <i class="fas fa-cart-plus"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+          <p class="text-center">Không có sản phẩm nào.</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Load More Button -->
+      {% if products.has_next %}
+      <button class="btn btn-primary load-more-btn" id="load-more">
+        Hiển thị thêm
+        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% if category.tags %}
+<div class="category-tags">
+  <h5 class="text-center mb-4">Từ khóa liên quan đến {{ category.name }}</h5>
+  <div class="text-center">
+    {% for tag in category.get_tags_list %}
+    <a href="?q={{ tag }}" class="category-tag" title="Tìm kiếm sản phẩm với từ khóa: {{ tag }}">
+      <i class="fas fa-tag me-1"></i>{{ tag }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/nouislider@14.6.3/distribute/nouislider.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize price slider
+  const priceSlider = document.getElementById('price-slider');
+  const priceMin = parseInt('{{ price_min|default:0 }}');
+  const priceMax = parseInt('{{ price_max|default:10000000 }}');
+  
+  noUiSlider.create(priceSlider, {
+    start: [priceMin, priceMax],
+    connect: true,
+    range: {
+      'min': 0,
+      'max': 10000000
+    },
+    format: {
+      to: function(value) {
+        return Math.round(value);
+      },
+      from: function(value) {
+        return value;
+      }
+    }
+  });
+
+  // Update price display
+  priceSlider.noUiSlider.on('update', function(values, handle) {
+    const value = values[handle];
+    const formattedValue = new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND'
+    }).format(value);
+    document.getElementById(handle === 0 ? 'price-min' : 'price-max').textContent = formattedValue;
+  });
+
+  // Load more products
+  let currentPage = 1;
+  const loadMoreBtn = document.getElementById('load-more');
+  if (loadMoreBtn) {
+    loadMoreBtn.addEventListener('click', function() {
+      const spinner = this.querySelector('.spinner-border');
+      spinner.classList.remove('d-none');
+      this.disabled = true;
+
+      currentPage++;
+      const displayCount = document.getElementById('display-count').value;
+      
+      // Get current filter values
+      const filters = {
+        page: currentPage,
+        display_count: displayCount,
+        price_min: priceSlider.noUiSlider.get()[0],
+        price_max: priceSlider.noUiSlider.get()[1],
+        brands: Array.from(document.querySelectorAll('.brand-filter:checked')).map(cb => cb.value),
+        features: Array.from(document.querySelectorAll('.feature-filter:checked')).map(cb => cb.value),
+        sort: document.getElementById('sort-options').value
+      };
+
+      // Fetch more products
+      fetch(`/products/category/{{ category.slug }}/?${new URLSearchParams(filters)}`, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.products.length > 0) {
+            const productsGrid = document.getElementById('products-grid');
+            data.products.forEach(product => {
+              const productCard = createProductCard(product);
+              productsGrid.appendChild(productCard);
+            });
+
+            if (!data.has_next) {
+              loadMoreBtn.remove();
+            }
+          } else {
+            loadMoreBtn.remove();
+          }
+        })
+        .finally(() => {
+          spinner.classList.add('d-none');
+          loadMoreBtn.disabled = false;
+        });
+    });
+  }
+
+  // Filter change handlers
+  document.querySelectorAll('.brand-filter, .feature-filter').forEach(filter => {
+    filter.addEventListener('change', updateFilters);
+  });
+
+  document.getElementById('sort-options').addEventListener('change', updateFilters);
+  document.getElementById('display-count').addEventListener('change', updateFilters);
+
+  // Reset filters
+  document.getElementById('reset-filters').addEventListener('click', function() {
+    priceSlider.noUiSlider.reset();
+    document.querySelectorAll('.brand-filter, .feature-filter').forEach(cb => cb.checked = false);
+    document.getElementById('sort-options').value = 'newest';
+    document.getElementById('display-count').value = '12';
+    updateFilters();
+  });
+
+  // Update filters and refresh products
+  function updateFilters() {
+    currentPage = 1;
+    const productsGrid = document.getElementById('products-grid');
+    productsGrid.innerHTML = '';
+
+    const filters = {
+      page: currentPage,
+      display_count: document.getElementById('display-count').value,
+      price_min: priceSlider.noUiSlider.get()[0],
+      price_max: priceSlider.noUiSlider.get()[1],
+      brands: Array.from(document.querySelectorAll('.brand-filter:checked')).map(cb => cb.value),
+      features: Array.from(document.querySelectorAll('.feature-filter:checked')).map(cb => cb.value),
+      sort: document.getElementById('sort-options').value
+    };
+
+    // Update active filters display
+    updateActiveFilters(filters);
+
+    // Fetch filtered products
+    fetch(`/products/category/{{ category.slug }}/?${new URLSearchParams(filters)}`, {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.products.length > 0) {
+          data.products.forEach(product => {
+            const productCard = createProductCard(product);
+            productsGrid.appendChild(productCard);
+          });
+
+          if (data.has_next) {
+            if (!document.getElementById('load-more')) {
+              const loadMoreBtn = document.createElement('button');
+              loadMoreBtn.id = 'load-more';
+              loadMoreBtn.className = 'btn btn-primary load-more-btn';
+              loadMoreBtn.innerHTML = 'Hiển thị thêm <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>';
+              productsGrid.parentNode.appendChild(loadMoreBtn);
+            }
+          } else {
+            const loadMoreBtn = document.getElementById('load-more');
+            if (loadMoreBtn) loadMoreBtn.remove();
+          }
+        } else {
+          productsGrid.innerHTML = '<div class="col-12"><p class="text-center">Không có sản phẩm nào.</p></div>';
+          const loadMoreBtn = document.getElementById('load-more');
+          if (loadMoreBtn) loadMoreBtn.remove();
+        }
+      });
+  }
+
+  // Create product card element
+  function createProductCard(product) {
+    const col = document.createElement('div');
+    col.className = 'col-6 col-md-4 col-lg-3';
+    col.innerHTML = `
+      <div class="card h-100 product-card">
+        <div class="position-relative">
+          <img src="${product.image || '/static/img/product_placeholder.png'}" class="card-img-top product-image" alt="${product.name}">
+          ${product.sale_price && product.sale_price < product.price ? 
+            '<span class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</span>' : ''}
+        </div>
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title product-title">${product.name}</h5>
+          <div class="mb-2">
+            ${product.sale_price && product.sale_price < product.price ?
+              `<span class="text-muted text-decoration-line-through me-2">${product.price.toLocaleString('vi-VN')}đ</span>
+               <span class="fw-bold text-danger">${product.sale_price.toLocaleString('vi-VN')}đ</span>` :
+              `<span class="fw-bold text-primary">${product.price.toLocaleString('vi-VN')}đ</span>`
+            }
+          </div>
+          <div class="mt-auto product-actions">
+            <a href="${product.url}" class="btn btn-outline-primary btn-sm" title="Xem chi tiết">
+              <i class="fas fa-eye"></i> Xem chi tiết
+            </a>
+            <form method="post" action="/cart/add/${product.id}/" class="d-inline">
+              <input type="hidden" name="csrfmiddlewaretoken" value="${getCookie('csrftoken')}">
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn btn-success btn-sm" title="Thêm vào giỏ hàng">
+                <i class="fas fa-cart-plus"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    `;
+    return col;
+  }
+
+  // Update active filters display
+  function updateActiveFilters(filters) {
+    const activeFiltersList = document.getElementById('active-filters-list');
+    activeFiltersList.innerHTML = '';
+
+    if (filters.price_min > 0 || filters.price_max < 10000000) {
+      const priceFilter = document.createElement('div');
+      priceFilter.className = 'filter-badge active';
+      priceFilter.textContent = `Giá: ${filters.price_min.toLocaleString('vi-VN')}đ - ${filters.price_max.toLocaleString('vi-VN')}đ`;
+      activeFiltersList.appendChild(priceFilter);
+    }
+
+    filters.brands.forEach(brandId => {
+      const brandName = document.querySelector(`#brand-${brandId}`).nextElementSibling.textContent;
+      const brandFilter = document.createElement('div');
+      brandFilter.className = 'filter-badge active';
+      brandFilter.textContent = brandName;
+      activeFiltersList.appendChild(brandFilter);
+    });
+
+    filters.features.forEach(featureId => {
+      const featureLabel = document.querySelector(`#feature-${featureId}`).nextElementSibling;
+      const featureName = featureLabel.textContent.trim();
+      const featureFilter = document.createElement('div');
+      featureFilter.className = 'filter-badge active';
+      featureFilter.innerHTML = featureLabel.innerHTML;
+      activeFiltersList.appendChild(featureFilter);
+    });
+
+    if (filters.sort !== 'newest') {
+      const sortName = document.querySelector(`#sort-options option[value="${filters.sort}"]`).textContent;
+      const sortFilter = document.createElement('div');
+      sortFilter.className = 'filter-badge active';
+      sortFilter.textContent = `Sắp xếp: ${sortName}`;
+      activeFiltersList.appendChild(sortFilter);
+    }
+  }
+
+  // Helper function to get CSRF token
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+});
+</script>
+{% endblock %}
+
+{% block meta_og %}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ category.meta_title|default:category.name }} - {{ site_settings.site_name }}">
+<meta property="og:description" content="{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{% if category.image %}{{ category.image.url }}{% elif site_settings.og_image %}{{ site_settings.og_image.url }}{% endif %}">
+<meta property="og:site_name" content="{{ site_settings.site_name }}">
+{% endblock %}
+
+{% block meta_twitter %}
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ category.meta_title|default:category.name }} - {{ site_settings.site_name }}">
+<meta name="twitter:description" content="{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}">
+<meta name="twitter:image" content="{% if category.image %}{{ category.image.url }}{% elif site_settings.og_image %}{{ site_settings.og_image.url }}{% endif %}">
+{% endblock %}
+
+{% block extra_head %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+<!-- BreadcrumbList Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Trang chủ",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Sản phẩm",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/products/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ category.name }}",
+      "item": "{{ request.build_absolute_uri }}"
+    }
+  ]
+}
+</script>
+{{ block.super }}
+{% endblock %}
+
+{% block extra_head %}
+  <title>{{ category.name }} - Camera HCM</title>
+  <meta name="description" content="{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}">
+  <meta name="keywords" content="{{ category.tags }}, camera, {{ category.name }}, shop online, an ninh, thiết bị, camera giám sát, camera an ninh, thiết bị bảo mật">
+  <link rel="canonical" href="{{ request.build_absolute_uri }}">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{ category.name }} - Camera HCM">
+  <meta property="og:description" content="{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+  <meta property="og:image" content="{% if category.image %}{{ category.image.url }}{% endif %}">
+  <meta property="og:site_name" content="Camera HCM">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ category.name }} - Camera HCM">
+  <meta name="twitter:description" content="{{ category.meta_description|default:category.description|striptags|truncatechars:160 }}">
+  <meta name="twitter:image" content="{% if category.image %}{{ category.image.url }}{% endif %}">
+
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Trang chủ",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Sản phẩm",
+        "item": "{{ request.scheme }}://{{ request.get_host }}/products/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "{{ category.name }}",
+        "item": "{{ request.build_absolute_uri }}"
+      }
+    ]
+  }
+  </script>
+
+  <!-- ItemList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": [
+      {% for product in products %}
+      {
+        "@type": "ListItem",
+        "position": {{ forloop.counter }},
+        "item": {
+          "@type": "Product",
+          "name": "{{ product.name }}",
+          "image": "{% if product.image %}{{ product.image.url }}{% endif %}",
+          "description": "{{ product.short_description|default:product.description|striptags|truncatechars:160 }}",
+          "sku": "{{ product.sku }}",
+          "brand": {
+            "@type": "Brand",
+            "name": "{{ product.brand.name }}"
+          },
+          "offers": {
+            "@type": "Offer",
+            "url": "{{ request.scheme }}://{{ request.get_host }}{{ product.get_absolute_url }}",
+            "priceCurrency": "VND",
+            "price": "{{ product.sale_price|default:product.price }}",
+            "availability": "https://schema.org/{% if product.in_stock %}InStock{% else %}OutOfStock{% endif %}"
+          }
+          {% if product.rating_count > 0 %},
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "{{ product.rating_avg|floatformat:1 }}",
+            "reviewCount": "{{ product.rating_count }}"
+          }
+          {% endif %}
+        }
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+  </script>
+{% endblock %} 

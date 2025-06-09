@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Notification Sounds</title>
+</head>
+<body>
+    <h1>Generate Notification Sounds</h1>
+    <button id="generate">Generate Sound</button>
+    <button id="record">Record Sound</button>
+    <button id="stop">Stop Recording</button>
+    <div id="status"></div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById('generate').onclick = () => {
+            const script = document.createElement('script');
+            script.src = '/static/js/create-notification-sound.js';
+            document.body.appendChild(script);
+        };
+
+        document.getElementById('record').onclick = async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Create download link
+                    const a = document.createElement('a');
+                    a.href = audioUrl;
+                    a.download = 'notification.mp3';
+                    a.click();
+                    
+                    // Clean up
+                    audioChunks = [];
+                    URL.revokeObjectURL(audioUrl);
+                };
+
+                mediaRecorder.start();
+                document.getElementById('status').textContent = 'Recording...';
+            } catch (err) {
+                console.error('Error recording:', err);
+                document.getElementById('status').textContent = 'Error: ' + err.message;
+            }
+        };
+
+        document.getElementById('stop').onclick = () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                document.getElementById('status').textContent = 'Recording stopped';
+            }
+        };
+    </script>
+</body>
+</html> 

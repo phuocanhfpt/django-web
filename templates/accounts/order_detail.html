@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load vnd_filters %}
+
+{% block title %}Chi tiết đơn hàng #{{ order.id }} - Camera HCM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb bg-white px-3 py-2 rounded shadow-sm">
+    <li class="breadcrumb-item"><a href="/" class="text-primary text-decoration-none">Trang chủ</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'accounts:profile' %}" class="text-primary text-decoration-none">Trang cá nhân</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'accounts:order_list' %}" class="text-primary text-decoration-none">Đơn hàng của tôi</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Chi tiết đơn hàng #{{ order.id }}</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Chi tiết đơn hàng #{{ order.id }}</h2>
+    <a href="{% url 'accounts:order_list' %}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left me-2"></i>Quay lại</a>
+  </div>
+  <div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+      <h6 class="mb-0">Thông tin đơn hàng</h6>
+    </div>
+    <div class="card-body">
+      <p><strong>Ngày đặt:</strong> {{ order.created|date:"d/m/Y H:i" }}</p>
+      <p><strong>Trạng thái:</strong> <span class="badge {% if order.status == 'pending' %}bg-warning{% elif order.status == 'processing' %}bg-info{% elif order.status == 'shipped' %}bg-primary{% elif order.status == 'delivered' %}bg-success{% else %}bg-danger{% endif %}">{{ order.get_status_display }}</span></p>
+      <p><strong>Tổng tiền:</strong> {{ order.total_price|default:order.total_cost|vndcomma }}đ</p>
+      <p><strong>Phương thức thanh toán:</strong> {{ order.get_payment_method_display }}</p>
+    </div>
+  </div>
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h6 class="mb-0">Sản phẩm</h6>
+    </div>
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Số lượng</th>
+              <th>Đơn giá</th>
+              <th>Thành tiền</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order.items.all %}
+            <tr>
+              <td>{{ item.product.name }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.price|vndcomma }}đ</td>
+              <td>{{ item.get_cost|vndcomma }}đ</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} 

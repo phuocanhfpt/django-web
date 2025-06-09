@@ -1,0 +1,769 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+{% load vnd_filters %}
+
+{% block title %}{{ site_settings.meta_title|default:site_settings.site_name }}{% endblock %}
+
+{% block meta_description %}{{ site_settings.meta_description|default:site_settings.description }}{% endblock %}
+
+{% block meta_keywords %}{{ site_settings.meta_keywords }}{% endblock %}
+
+{% block canonical_url %}{{ request.build_absolute_uri }}{% endblock %}
+
+{% block extra_head %}
+    {% if site_settings.favicon %}
+    <link rel="icon" type="image/png" href="{{ site_settings.favicon.url }}">
+    {% endif %}
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+    <meta property="og:title" content="{{ site_settings.meta_title|default:site_settings.site_name }}">
+    <meta property="og:description" content="{{ site_settings.meta_description|default:site_settings.description }}">
+  <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{% if hero_slides and hero_slides.0.image %}{{ hero_slides.0.image.url }}{% elif site_settings.og_image %}{{ site_settings.og_image.url }}{% endif %}">
+    <meta property="og:site_name" content="{{ site_settings.site_name }}">
+  
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ site_settings.meta_title|default:site_settings.site_name }}">
+    <meta name="twitter:description" content="{{ site_settings.meta_description|default:site_settings.description }}">
+    <meta name="twitter:image" content="{% if hero_slides and hero_slides.0.image %}{{ hero_slides.0.image.url }}{% elif site_settings.og_image %}{{ site_settings.og_image.url }}{% endif %}">
+  
+  <!-- Organization Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+      "name": "{{ site_settings.site_name }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+      "logo": "{% if site_settings.logo %}{{ site_settings.logo.url }}{% endif %}",
+      "description": "{{ site_settings.meta_description|default:site_settings.description }}",
+    "address": {
+      "@type": "PostalAddress",
+        "streetAddress": "{{ site_settings.address }}",
+        "addressLocality": "{{ site_settings.city }}",
+        "addressRegion": "{{ site_settings.state }}",
+        "postalCode": "{{ site_settings.postal_code }}",
+      "addressCountry": "VN"
+    },
+    "contactPoint": {
+      "@type": "ContactPoint",
+        "telephone": "{{ site_settings.phone }}",
+      "contactType": "customer service",
+        "email": "{{ site_settings.email }}"
+    },
+    "sameAs": [
+        "{{ site_settings.facebook_url }}",
+        "{{ site_settings.youtube_url }}",
+        "{{ site_settings.instagram_url }}"
+    ]
+  }
+  </script>
+
+  <!-- BreadcrumbList Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [{
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Trang chủ",
+      "item": "{{ request.scheme }}://{{ request.get_host }}/"
+    }]
+  }
+  </script>
+
+  <!-- Website Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+      "name": "{{ site_settings.site_name }}",
+    "url": "{{ request.scheme }}://{{ request.get_host }}",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "{{ request.scheme }}://{{ request.get_host }}/search?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Carousel giữ nguyên nếu có -->
+{% if hero_slides %}
+<style>
+  .hero-carousel .carousel-control-prev, .hero-carousel .carousel-control-next {
+    width: 40px;
+    height: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e53935;
+    opacity: 0.95;
+    font-size: 1.2rem;
+    transition: background 0.2s, color 0.2s;
+    border: none;
+  }
+  .hero-carousel .carousel-control-prev:hover, .hero-carousel .carousel-control-next:hover {
+    background: #e53935;
+    color: #fff;
+    opacity: 1;
+  }
+  .hero-carousel .carousel-control-prev-icon, .hero-carousel .carousel-control-next-icon {
+    display: none;
+  }
+  .hero-carousel .carousel-control-prev i, .hero-carousel .carousel-control-next i {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .hero-carousel .carousel-caption .btn-outline-light {
+    background: transparent !important;
+    border: 2px solid #fff;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 30px;
+    padding: 8px 28px;
+    font-size: 1.1rem;
+    box-shadow: none;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+  }
+  .hero-carousel .carousel-caption .btn-outline-light:hover {
+    background: #fff !important;
+    color: #e53935 !important;
+    border-color: #fff;
+  }
+  .hero-carousel .carousel-item {
+    height: 400px;
+  }
+  .hero-carousel .carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  @media (max-width: 768px) {
+    .hero-carousel .carousel-item {
+      height: 220px;
+    }
+  }
+  @media (max-width: 575.98px) {
+    .btn-add-cart {
+      font-size: 0.97rem !important;
+      padding: 0.45em 0.7em !important;
+      height: 34px !important;
+      min-width: unset !important;
+      width: auto !important;
+      white-space: nowrap !important;
+      border-radius: 16px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 0.4em !important;
+      box-shadow: none !important;
+    }
+    .btn-add-cart i {
+      margin-right: 0.25em !important;
+      font-size: 1em !important;
+    }
+  }
+</style>
+<div id="heroCarousel" class="carousel slide hero-carousel mb-4" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+        {% for slide in hero_slides %}
+        <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ forloop.counter0 }}" {% if forloop.first %}class="active"{% endif %}></button>
+        {% endfor %}
+    </div>
+    <div class="carousel-inner">
+        {% for slide in hero_slides %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="hero-carousel-image-wrapper">
+                {% if slide.image %}
+                    {% if slide.link %}
+                    <a href="{{ slide.link }}">
+                        <img src="{{ slide.image.url }}" alt="{{ slide.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    </a>
+                    {% else %}
+                    <img src="{{ slide.image.url }}" alt="{{ slide.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    {% endif %}
+                {% else %}
+                    {% if slide.link %}
+                    <a href="{{ slide.link }}">
+                        <img src="{% static 'images/placeholder.jpg' %}" alt="{{ slide.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    </a>
+                    {% else %}
+                    <img src="{% static 'images/placeholder.jpg' %}" alt="{{ slide.title }}" loading="{% if forloop.first %}eager{% else %}lazy{% endif %}">
+                    {% endif %}
+                {% endif %}
+            </div>
+            <div class="carousel-caption">
+                <h2>{{ slide.title }}</h2>
+                {% if slide.subtitle %}<p>{{ slide.subtitle }}</p>{% endif %}
+                {% if slide.link %}<a href="{{ slide.link }}" class="btn btn-outline-light">Xem thêm <i class="fas fa-arrow-right ms-2"></i></a>{% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+        <i class="fas fa-chevron-left"></i>
+        <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+        <i class="fas fa-chevron-right"></i>
+        <span class="visually-hidden">Next</span>
+    </button>
+</div>
+{% endif %}
+
+<!-- Section Title Style & Icon Style -->
+<style>
+  .section-title {
+    position: relative;
+    display: flex;
+    align-items: center;
+    font-size: 1.28rem;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 1.2rem;
+    padding-bottom: 7px;
+    letter-spacing: 0.2px;
+    gap: 8px;
+  }
+  .section-title .icon {
+    font-size: 1.05rem;
+    color: #e53935;
+    margin-right: 6px;
+    vertical-align: middle;
+    flex-shrink: 0;
+  }
+  .section-title:after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, #e53935 0 70px, #e5393555 70px 100%);
+    border-radius: 2px;
+    z-index: 1;
+  }
+  @media (max-width: 768px) {
+    .section-title {
+      font-size: 1.05rem;
+      padding-bottom: 5px;
+    }
+    .section-title:after {
+      height: 2px;
+      background: linear-gradient(90deg, #e53935 0 36px, #e5393555 36px 100%);
+    }
+  }
+  /* Icon nhỏ gọn cho card, nút */
+  .product-card .fa, .product-card .fas, .product-card .bi {
+    font-size: 1em !important;
+    margin-right: 4px;
+    vertical-align: -1px;
+  }
+  .product-card .btn i {
+    margin-right: 3px;
+  }
+  /* Swiper arrow custom */
+  .swiper-button-next, .swiper-button-prev {
+    width: 32px;
+    height: 32px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(229,57,53,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e53935;
+    font-size: 1.1rem;
+    transition: background 0.2s, color 0.2s;
+  }
+  .swiper-button-next:hover, .swiper-button-prev:hover {
+    background: #e53935;
+    color: #fff;
+  }
+  .swiper-button-next:after, .swiper-button-prev:after {
+    display: none;
+  }
+</style>
+
+<!-- Danh mục sản phẩm nổi bật dạng thẻ ngang (slider) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+<div class="container mb-4">
+  <h3 class="section-title"><i class="fas fa-th-large icon"></i>Danh mục sản phẩm</h3>
+  <div class="swiper category-swiper">
+    <div class="swiper-wrapper">
+      {% for category in categories %}
+      <div class="swiper-slide">
+        <a href="{{ category.get_absolute_url }}" class="text-decoration-none">
+          <div class="category-feature-card d-flex flex-column align-items-center justify-content-center text-center p-3 h-100" style="border-radius:16px; min-height:180px; background: linear-gradient(135deg, #ffb86c 0%, #ff6bcb 100%);">
+            {% if category.image %}
+              <img src="{{ category.image.url }}" alt="{{ category.name }}" style="height:70px;object-fit:contain; margin-bottom:10px;">
+            {% else %}
+              <img src="{% static 'img/category_placeholder.png' %}" alt="{{ category.name }}" style="height:70px;object-fit:contain; margin-bottom:10px;">
+            {% endif %}
+            <div class="fw-bold text-white text-shadow" style="font-size:0.8rem; text-transform:uppercase;">{{ category.name }}</div>
+          </div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="swiper-button-next"><i class="fas fa-chevron-right"></i></div>
+    <div class="swiper-button-prev"><i class="fas fa-chevron-left"></i></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script>
+  var catSwiper = new Swiper('.category-swiper', {
+    slidesPerView: 2,
+    spaceBetween: 20,
+    navigation: {
+      nextEl: '.category-swiper .swiper-button-next',
+      prevEl: '.category-swiper .swiper-button-prev',
+    },
+    breakpoints: {
+      768: { slidesPerView: 4 },
+      1200: { slidesPerView: 5 }
+    }
+  });
+</script>
+
+<!-- Sản phẩm mới (slider ngang) -->
+<style>
+  .product-image-wrapper {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border-radius: 8px 8px 0 0;
+    overflow: hidden;
+  }
+  .product-image-wrapper img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+  }
+  .product-card {
+    min-height: 390px;
+    display: flex;
+    flex-direction: column;
+  }
+  .product-card .card-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+</style>
+<div class="container mb-5">
+  <h3 class="section-title"><i class="fas fa-bolt icon"></i>Sản phẩm mới</h3>
+  <div class="swiper new-products-swiper">
+    <div class="swiper-wrapper">
+      {% for product in new_products %}
+      <div class="swiper-slide">
+        <div class="card h-100 product-card shadow-sm border-0 rounded-4">
+          <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+            <div class="position-relative product-image-wrapper">
+              {% if product.image %}
+              <img src="{{ product.image.url }}" class="card-img-top product-image rounded-top-4" alt="{{ product.name }}" loading="lazy">
+              {% else %}
+              <img src="{% static 'img/product_placeholder.png' %}" class="card-img-top product-image rounded-top-4" alt="{{ product.name }}" loading="lazy">
+              {% endif %}
+              {% if product.sale_price and product.sale_price < product.price %}
+              <span class="badge bg-danger position-absolute top-0 start-0 m-2">SALE</span>
+              {% endif %}
+            </div>
+          </a>
+          <div class="card-body d-flex flex-column">
+            <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="card-title product-title mb-0">
+                  {{ product.name }}
+                  {% if product.comments_count %}
+                  <span class="ms-2 text-muted small"><i class="fas fa-comments"></i> {{ product.comments_count }}</span>
+                  {% endif %}
+                </h5>
+              </div>
+            </a>
+            <div class="mb-2">
+              {% if product.sale_price and product.sale_price < product.price %}
+              <span class="text-muted text-decoration-line-through me-2">{{ product.price|vndcomma }} đ</span>
+              <span class="fw-bold text-danger">{{ product.sale_price|vndcomma }} đ</span>
+              {% else %}
+              <span class="fw-bold text-primary">{{ product.price|vndcomma }} đ</span>
+              {% endif %}
+            </div>
+            <div class="mt-auto product-actions">
+              <form method="post" action="{% url 'cart:cart_add' product.id %}" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-add-cart" title="Thêm vào giỏ hàng">
+                  <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <!-- Add Arrows -->
+    <div class="swiper-button-next"><i class="fas fa-chevron-right"></i></div>
+    <div class="swiper-button-prev"><i class="fas fa-chevron-left"></i></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+<script>
+  var swiper = new Swiper('.new-products-swiper', {
+    slidesPerView: 2,
+    spaceBetween: 20,
+    navigation: {
+      nextEl: '.new-products-swiper .swiper-button-next',
+      prevEl: '.new-products-swiper .swiper-button-prev',
+    },
+    breakpoints: {
+      768: { slidesPerView: 3 },
+      992: { slidesPerView: 4 }
+    }
+  });
+</script>
+
+<!-- Sản phẩm khuyến mãi Hot -->
+<div class="container mb-5">
+  <h3 class="section-title"><i class="fas fa-fire icon"></i>Sản phẩm khuyến mãi Hot</h3>
+  <div class="row g-4">
+    {% for product in hot_sale_products %}
+    <div class="col-6 col-md-6 col-lg-3">
+      <div class="card h-100 product-card shadow-sm border-0 rounded-4">
+        <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+          <div class="position-relative product-image-wrapper">
+            {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top product-image rounded-top-4" alt="{{ product.name }}">
+            {% else %}
+            <img src="{% static 'img/product_placeholder.png' %}" class="card-img-top product-image rounded-top-4" alt="{{ product.name }}">
+            {% endif %}
+            <span class="badge bg-danger position-absolute top-0 start-0 m-2">
+              -{{ product.discount_percent|floatformat:0 }}%
+            </span>
+          </div>
+        </a>
+        <div class="card-body d-flex flex-column">
+          <a href="{{ product.get_absolute_url }}" class="text-decoration-none">
+            <h5 class="card-title product-title mb-0">
+              {{ product.name }}
+              {% if product.comments_count %}
+              <span class="ms-2 text-muted small"><i class="fas fa-comments"></i> {{ product.comments_count }}</span>
+              {% endif %}
+            </h5>
+          </a>
+          <div class="mb-2">
+            <span class="text-muted text-decoration-line-through me-2">{{ product.price|vndcomma }} đ</span>
+            <span class="fw-bold text-danger">{{ product.sale_price|vndcomma }} đ</span>
+          </div>
+          <div class="mt-auto product-actions">
+            <form method="post" action="{% url 'cart:cart_add' product.id %}" class="d-inline">
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1">
+              <button type="submit" class="btn btn-add-cart" title="Thêm vào giỏ hàng">
+                <i class="fas fa-cart-plus"></i> Thêm vào giỏ hàng
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center">Chưa có sản phẩm khuyến mãi hot.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Form Đăng ký Tư vấn -->
+<div class="container mb-5">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-body p-4">
+      <h3 class="section-title mb-4"><i class="fas fa-headset icon"></i>Đăng ký Tư vấn</h3>
+      <form id="consultationForm" method="post" action="{% url 'consultations:submit' %}" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="fullName" name="full_name" placeholder="Họ và tên" required>
+              <label for="fullName">Họ và tên</label>
+              <div class="invalid-feedback" id="fullNameError"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-3">
+              <input type="text" class="form-control" id="address" name="address" placeholder="Địa chỉ lắp đặt" required>
+              <label for="address">Địa chỉ lắp đặt</label>
+              <div class="invalid-feedback" id="addressError"></div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="form-floating mb-3">
+              <input type="tel" class="form-control" id="phone" name="phone" placeholder="Điện thoại liên hệ" required>
+              <label for="phone">Điện thoại liên hệ</label>
+              <div class="invalid-feedback" id="phoneError"></div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="form-floating mb-3">
+              <textarea class="form-control" id="content" name="content" placeholder="Nội dung nhu cầu" style="height: 100px" required></textarea>
+              <label for="content">Nội dung nhu cầu</label>
+              <div class="invalid-feedback" id="contentError"></div>
+            </div>
+            <div class="form-text mb-3">Nhập yêu cầu và gửi để chúng tôi đưa ra phương án tối ưu cho quý khách. Cảm ơn!</div>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-danger px-4 py-2 fw-bold">
+              <i class="fas fa-paper-plane me-2"></i>Gửi yêu cầu tư vấn
+            </button>
+          </div>
+        </div>
+      </form>
+      <div id="formMessage" class="mt-3" style="display: none;"></div>
+
+      <script>
+        document.getElementById('consultationForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Reset previous errors
+          document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+          document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+          document.getElementById('formMessage').style.display = 'none';
+          
+          const formData = new FormData(this);
+          
+          fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              // Show success message
+              const messageDiv = document.getElementById('formMessage');
+              messageDiv.className = 'alert alert-success mt-3';
+              messageDiv.textContent = data.message;
+              messageDiv.style.display = 'block';
+              
+              // Reset form
+              this.reset();
+            } else if (data.status === 'error') {
+              if (data.errors) {
+                // Show validation errors
+                Object.keys(data.errors).forEach(field => {
+                  const input = document.getElementById(field);
+                  const errorDiv = document.getElementById(field + 'Error');
+                  if (input && errorDiv) {
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = data.errors[field];
+                  }
+                });
+              } else {
+                // Show general error message
+                const messageDiv = document.getElementById('formMessage');
+                messageDiv.className = 'alert alert-danger mt-3';
+                messageDiv.textContent = data.message;
+                messageDiv.style.display = 'block';
+              }
+            }
+          })
+          .catch(error => {
+            const messageDiv = document.getElementById('formMessage');
+            messageDiv.className = 'alert alert-danger mt-3';
+            messageDiv.textContent = 'Có lỗi xảy ra. Vui lòng thử lại sau!';
+            messageDiv.style.display = 'block';
+          });
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+<!-- Tin tức section -->
+<div class="container mb-5">
+  <h3 class="section-title"><i class="fas fa-newspaper icon"></i>Tin tức</h3>
+  <div class="row g-3 align-items-stretch">
+    {% with main_post=posts.0 sub_posts=posts|slice:'1:4' %}
+      {% if main_post %}
+      <div class="col-md-6 d-flex">
+        <div class="card h-100 shadow-sm flex-fill d-flex flex-column">
+          {% if main_post.image %}
+          <a href="{% url 'posts:post_detail' main_post.slug %}">
+            <img src="{{ main_post.image.url }}" class="card-img-top" alt="{{ main_post.title }}" style="height:260px;object-fit:cover;" loading="lazy">
+          </a>
+          {% endif %}
+          <div class="card-body d-flex flex-column">
+            <h4 class="card-title mb-2">
+              <a href="{% url 'posts:post_detail' main_post.slug %}" class="text-decoration-none text-dark">
+                {{ main_post.title }}
+              </a>
+            </h4>
+            <div class="mb-2 text-muted small">
+              <i class="far fa-calendar-alt me-1"></i>{{ main_post.created|date:'d/m/Y' }}
+              <span class="ms-3"><i class="fas fa-comments me-1"></i>{{ main_post.comments_count|default:0 }}</span>
+            </div>
+            <p class="card-text flex-grow-1">{{ main_post.meta_description|default:main_post.content|truncatewords:30|safe }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 d-flex flex-column">
+        <div class="row g-3 h-100 flex-fill">
+          {% for post in sub_posts %}
+          <div class="col-12 d-flex flex-fill">
+            <div class="card h-100 flex-row shadow-sm flex-fill">
+              {% if post.image %}
+              <a href="{% url 'posts:post_detail' post.slug %}">
+                <img src="{{ post.image.url }}" class="img-fluid rounded-start" alt="{{ post.title }}" style="width:120px;height:90px;object-fit:cover;" loading="lazy">
+              </a>
+              {% endif %}
+              <div class="card-body py-2 px-3 d-flex flex-column justify-content-between">
+                <div>
+                  <h6 class="card-title mb-1" style="font-size:1rem;">
+                    <a href="{% url 'posts:post_detail' post.slug %}" class="text-decoration-none text-dark">
+                      {{ post.title }}
+                    </a>
+                  </h6>
+                  <div class="mb-1 text-muted small">
+                    <i class="far fa-calendar-alt me-1"></i>{{ post.created|date:'d/m/Y' }}
+                    <span class="ms-3"><i class="fas fa-comments me-1"></i>{{ post.comments_count|default:0 }}</span>
+                  </div>
+                  <p class="card-text small mb-2">{{ post.meta_description|default:post.content|truncatewords:15|safe }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12 text-center">Chưa có bài viết nào.</div>
+      {% endif %}
+    {% endwith %}
+    <div class="col-12 text-center mt-3">
+      <a href="{% url 'posts:post_list' %}" class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold">
+        Xem thêm tin tức <i class="fas fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FAQ section -->
+<div class="container mb-5">
+  <h3 class="section-title"><i class="fas fa-question-circle icon"></i>Câu hỏi thường gặp</h3>
+  <div class="accordion" id="faqAccordion">
+    {% for faq in faqs|slice:':8' %}
+    <div class="accordion-item">
+      <h2 class="accordion-header" id="faqHeading{{ forloop.counter }}">
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapse{{ forloop.counter }}" aria-expanded="false" aria-controls="faqCollapse{{ forloop.counter }}">
+          {{ faq.question }}
+        </button>
+      </h2>
+      <div id="faqCollapse{{ forloop.counter }}" class="accordion-collapse collapse" aria-labelledby="faqHeading{{ forloop.counter }}" data-bs-parent="#faqAccordion">
+        <div class="accordion-body">{{ faq.answer }}</div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="text-center">Chưa có câu hỏi nào.</div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row align-items-center">
+    <div class="col-md-6 d-flex align-items-center gap-3 mb-3 mb-md-0">
+      <i class="fas fa-envelope-open-text fa-3x text-primary"></i>
+      <div>
+        <div class="fw-bold text-uppercase" style="font-size:0.8rem;">Đăng ký nhận tin khuyến mãi hot mỗi ngày</div>
+        <div class="text-muted" style="font-size:0.97rem;">Đừng bỏ lỡ hàng ngàn sản phẩm từ chương trình siêu hấp dẫn</div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <form id="newsletterForm" method="post" action="{% url 'consultations:newsletter' %}" class="d-flex gap-2">
+        {% csrf_token %}
+        <div class="form-floating flex-grow-1">
+          <input type="email" class="form-control" id="newsletterEmail" name="email" placeholder="Email của bạn" required>
+          <label for="newsletterEmail">Email của bạn</label>
+          <div class="invalid-feedback" id="emailError"></div>
+        </div>
+        <button type="submit" class="btn btn-danger px-4 fw-bold" style="height: 58px;">
+          <i class="fas fa-paper-plane me-2"></i>Đăng ký
+        </button>
+      </form>
+      <div id="newsletterMessage" class="mt-2" style="display: none;"></div>
+
+      <script>
+        document.getElementById('newsletterForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Reset previous errors
+          const emailInput = document.getElementById('newsletterEmail');
+          emailInput.classList.remove('is-invalid');
+          document.getElementById('emailError').textContent = '';
+          document.getElementById('newsletterMessage').style.display = 'none';
+          
+          const formData = new FormData(this);
+          console.log('Form data:', Object.fromEntries(formData)); // Debug log
+          
+          fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+          })
+          .then(response => {
+            console.log('Response status:', response.status); // Debug log
+            return response.json();
+          })
+          .then(data => {
+            console.log('Response data:', data); // Debug log
+            const messageDiv = document.getElementById('newsletterMessage');
+            
+            if (data.status === 'success') {
+              messageDiv.className = 'alert alert-success mt-2';
+              messageDiv.innerHTML = `<i class="fas fa-check-circle me-2"></i>${data.message}`;
+              messageDiv.style.display = 'block';
+              this.reset();
+            } else {
+              messageDiv.className = 'alert alert-danger mt-2';
+              messageDiv.innerHTML = `<i class="fas fa-exclamation-circle me-2"></i>${data.message}`;
+              messageDiv.style.display = 'block';
+              
+              if (data.message.includes('email')) {
+                emailInput.classList.add('is-invalid');
+                document.getElementById('emailError').textContent = data.message;
+              }
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error); // Debug log
+            const messageDiv = document.getElementById('newsletterMessage');
+            messageDiv.className = 'alert alert-danger mt-2';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle me-2"></i>Có lỗi xảy ra. Vui lòng thử lại sau!';
+            messageDiv.style.display = 'block';
+          });
+        });
+      </script>
+    </div>
+  </div>
+</div>
+
+{% endblock %} 
