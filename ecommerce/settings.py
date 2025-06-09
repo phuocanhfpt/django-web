@@ -205,14 +205,14 @@ TINYMCE_DEFAULT_CONFIG = {
     'height': '300px',
 }
 
-# --- Cấu hình gửi mail qua Gmail SMTP ---
+# Cấu hình email với fallback an toàn
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = 'Lắp Camera HCM <lapcamerahcm.vn@gmail.com>'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')  # Sử dụng os.getenv thay cho env()
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER', 'Lắp Camera HCM <lapcamerahcm.vn@gmail.com>')
 
 SITE_ID = 2
 
