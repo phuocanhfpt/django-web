@@ -30,7 +30,6 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('accounts/', include(('accounts.urls', 'accounts'), namespace='accounts')),
     path('posts/', include('posts.urls', namespace='posts')),
-    path('consultations/', include('consultations.urls')),
     path('contact/', include('consultations.urls')),
     path('ckeditor/', include('ckeditor_uploader.urls')),
     path('tinymce/', include('tinymce.urls')),
