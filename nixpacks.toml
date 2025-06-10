@@ -1,5 +1,6 @@
 [phases.setup]
 aptPkgs = [
+"default-mysql-client",
   "libmysqlclient-dev",
   "pkg-config",
   "build-essential",
